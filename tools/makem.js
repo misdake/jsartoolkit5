@@ -51,7 +51,6 @@ var ar_sources = [
 	'AR/*.c',
 	'ARICP/*.c',
 	'ARMulti/*.c',
-    'Video/VideoLuma.c',
     'ARUtil/log.c',
     'ARUtil/file_utils.c',
 
