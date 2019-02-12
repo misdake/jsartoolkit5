@@ -33,12 +33,7 @@ var BUILD_DEBUG_FILE = 'artoolkit.debug.js';
 var BUILD_WASM_FILE = 'artoolkit_wasm.js';
 var BUILD_MIN_FILE = 'artoolkit.min.js';
 
-var MAIN_SOURCES = HAVE_NFT ? [
-	'NFT/ARMarkerNFT.c',
-	'NFT/trackingSub.c',
-	'NFT/thread_sub.c',
-	'ARToolKitJS.cpp'
-] : [
+var MAIN_SOURCES = [
 	'ARToolKitJS.cpp'
 ];
 
