@@ -54,15 +54,6 @@ var ar_sources = [
     'ARUtil/log.c',
     'ARUtil/file_utils.c',
 
-	// 'Gl/gsub_es2.c',
-
-	// 'ARWrapper/ARToolkitWrapperExportedAPI.cpp',
-
-	// 'ARWrapper/ARMarker.cpp',
-	// 'ARWrapper/ARMarkerMulti.cpp',
-	// 'ARWrapper/ARController.cpp',
-	// ARMarkerNFT // trackingSub
-	// 'ARWrapper/ARPattern.cpp'
 ].map(function(src) {
 	return path.resolve(__dirname, ARTOOLKIT5_ROOT + '/lib/SRC/', src);
 });
