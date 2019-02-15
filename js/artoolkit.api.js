@@ -59,7 +59,7 @@
 
 		@param {number | HTMLImageElement | HTMLVideoElement} width The width of the images to process. If this is a HTMLImageElement, the ARController treats it as an image and it tries to find a marker in that image
 		@param {number | string | ARCameraParam} height The height of the images to process. If width is a HTMLImageElement, height is treated as cameraPara. (See cameraPara for more info)
-		@param {ARCameraParam | string} cameraPara The ARCameraParam to use for image processing. If this is a string, the ARController treats it as an URL and tries to load it as a ARCameraParam definition file, calling ARController#onload on success. 
+		@param {ARCameraParam | string} cameraPara The ARCameraParam to use for image processing. If this is a string, the ARController treats it as an URL and tries to load it as a ARCameraParam definition file, calling ARController#onload on success.
 	*/
 	var ARController = function(width, height, cameraPara) {
 		var w = width, h = height;
@@ -91,7 +91,7 @@
 		this.videoWidth = w;
 		this.videoHeight = h;
         this.videoSize = this.videoWidth * this.videoHeight;
-        
+
         //Set during _initialize
         this.framepointer = null;
 		this.framesize = null;
@@ -257,10 +257,10 @@
 			artoolkit.getTransMatMultiSquareRobust(this.id, i);
 			this.transMatToGLMat(this.marker_transform_mat, this.transform_mat);
             this.transformGL_RH = this.arglCameraViewRHf(this.transform_mat);
-            
+
 			for (j=0; j<subMarkerCount; j++) {
                 multiEachMarkerInfo = this.getMultiEachMarker(i, j);
-                
+
 				if (multiEachMarkerInfo.visible >= 0) {
 					visible = true;
 					this.dispatchEvent({
@@ -280,7 +280,7 @@
 					multiEachMarkerInfo = this.getMultiEachMarker(i, j);
                     this.transMatToGLMat(this.marker_transform_mat, this.transform_mat);
                     this.transformGL_RH = this.arglCameraViewRHf(this.transform_mat);
-                    
+
 					this.dispatchEvent({
 						name: 'getMultiMarkerSub',
 						target: this,
@@ -595,7 +595,7 @@
         var m_modelview;
         if(glRhMatrix == undefined)
             m_modelview = new Float64Array(16);
-        else    
+        else
             m_modelview = glRhMatrix;
 
         // x
@@ -612,8 +612,8 @@
         m_modelview[2] = -glMatrix[2];
         m_modelview[6] = -glMatrix[6];
         m_modelview[10] = -glMatrix[10];
-        m_modelview[14] = -glMatrix[14];    
-    
+        m_modelview[14] = -glMatrix[14];
+
         // 0 0 0 1
         m_modelview[3] = 0;
         m_modelview[7] = 0;
@@ -625,7 +625,7 @@
 			m_modelview[13] *= scale;
 			m_modelview[14] *= scale;
 		}
-        
+
         glRhMatrix = m_modelview;
 
         return glRhMatrix;
@@ -1131,7 +1131,7 @@
 			this._debugMarker(this.getMarker(i));
         }
         if(this.transform_mat && this.transformGL_RH){
-            console.log("GL 4x4 Matrix: " + this.transform_mat);    
+            console.log("GL 4x4 Matrix: " + this.transform_mat);
             console.log("GL_RH 4x4 Mat: " + this.transformGL_RH);
         }
 	};
@@ -1204,7 +1204,7 @@
         if(this.videoLuma) {
             var q = 0;
             //Create luma from video data assuming Pixelformat AR_PIXEL_FORMAT_RGBA (ARToolKitJS.cpp L: 43)
-            
+
             for(var p=0; p < this.videoSize; p++){
                 var r = data[q+0], g = data[q+1], b = data[q+2];
                 // videoLuma[p] = (r+r+b+g+g+g)/6;         // https://stackoverflow.com/a/596241/5843642
@@ -1335,13 +1335,13 @@
             if(window.URL.createObjectURL) {
                 //Need to add try-catch because iOS 11 fails to createObjectURL from stream. As this is deprecated  we should remove this soon
                 try {
-                    video.src = window.URL.createObjectURL(stream); // DEPRECATED: this feature is in the process to being deprecated 
+                    video.src = window.URL.createObjectURL(stream); // DEPRECATED: this feature is in the process to being deprecated
                 }
                 catch (ex) {
                     // Nothing todo, the purpose of this is to remove an error from the console on iOS 11
                 }
             }
-            
+
             video.srcObject = stream; // This should be used instead. Which has the benefit to give us access to the stream object
             readyToPlay = true;
             video.autoplay = true;
@@ -1389,7 +1389,7 @@
 			audio: false,
 			video: constraints
         };
-        
+
 		// @ts-ignore: ignored because it is needed to support older browsers
         if ( navigator.mediaDevices || window.MediaStreamTrack.getSources) {
 			if (navigator.mediaDevices) {
@@ -1398,7 +1398,7 @@
 					video: mediaDevicesConstraints
 				}).then(success, onError);
 			} else {
-                // This function of accessing the media device is deprecated and outdated and shouldn't be used anymore. 
+                // This function of accessing the media device is deprecated and outdated and shouldn't be used anymore.
 		        // @ts-ignore: ignored because it is needed to support older browsers
                 window.MediaStreamTrack.getSources(function(sources) {
 					var facingDir = mediaDevicesConstraints.facingMode;
@@ -1852,10 +1852,14 @@
 	window.ARCameraParam = ARCameraParam;
 
 	if (window.Module) {
+		console.log('window module exist:',window.Module);
+		runWhenLoaded();
 		window.Module.onRuntimeInitialized = function() {
-            runWhenLoaded();
+			      console.log('we enter in the Runtime!');
+            //runWhenLoaded();
             var event = new Event('artoolkit-loaded');
             window.dispatchEvent(event);
+						console.log('event is: ', event);
         }
 	} else {
         window.Module = {
