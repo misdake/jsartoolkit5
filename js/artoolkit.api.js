@@ -1,7 +1,7 @@
 ;(function() {
 	'use strict';
 
-	if(window.artoolkit_wasm_url) {
+	/*if(window.artoolkit_wasm_url) {
          function downloadWasm(url) {
              return new Promise(function(resolve, reject) {
              var wasmXHR = new XMLHttpRequest();
@@ -36,7 +36,7 @@
              });
              return {}; // Compiling asynchronously, no exports.
          }
-     }
+     }*/
 
 	/**
 		The ARController is the main object for doing AR marker detection with JSARToolKit.
@@ -1918,23 +1918,28 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 		}
 	}
 
-	/* Exports */
-	window.artoolkit = artoolkit;
-	window.ARController = ARController;
-	window.ARCameraParam = ARCameraParam;
-
-	if (window.Module) {
-		window.Module.onRuntimeInitialized = function() {
-            runWhenLoaded();
-            var event = new Event('artoolkit-loaded');
-            window.dispatchEvent(event);
-        }
+	var scope;
+	if (typeof window !== 'undefined') {
+		scope = window;
 	} else {
-        window.Module = {
-            onRuntimeInitialized: function() {
-                runWhenLoaded();
-            }
-        };
-    }
+		scope = self;
+	}
+
+	/* Exports */
+	scope.artoolkit = artoolkit;
+	scope.ARController = ARController;
+	scope.ARCameraParam = ARCameraParam;
+
+	if (scope.Module) {
+		scope.Module.onRuntimeInitialized = function() {
+		runWhenLoaded();
+	}
+	} else {
+		scope.Module = {
+			onRuntimeInitialized: function() {
+				runWhenLoaded();
+			}
+		};
+	}
 
 })();

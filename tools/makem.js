@@ -23,7 +23,7 @@ if (!EMSCRIPTEN_ROOT) {
 
 var EMCC = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, 'emcc') : 'emcc';
 var EMPP = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, 'em++') : 'em++';
-var OPTIMIZE_FLAGS = ' -Oz '; // -Oz for smallest size
+var OPTIMIZE_FLAGS = ' -O2 '; // -Oz for smallest size
 var MEM = 256 * 1024 * 1024; // 64MB
 
 
@@ -35,6 +35,8 @@ var BUILD_WASM_FILE = 'artoolkitNft_wasm.js';
 var BUILD_MIN_FILE = 'artoolkitNft.min.js';
 
 var MAIN_SOURCES = [
+	'ARMarkerNFT.c',
+	'trackingSub.c',
 	'ARToolKitJS.cpp'
 ];
 
@@ -50,6 +52,7 @@ var ar_sources = [
 	'Video/video.c',
 	'ARUtil/log.c',
   'ARUtil/file_utils.c',
+	'ARUtil/thread_sub.c',
 	//'Video/videoLuma.c',
 	//'Gl/gsub_lite.c',
 ].map(function(src) {
@@ -118,6 +121,8 @@ FLAGS += ' -s USE_ZLIB=1';
 //FLAGS += ' -s NO_BROWSER=1 '; // for 20k less
 FLAGS += ' --memory-init-file 0 '; // for memless file
 FLAGS += ' -s BINARYEN_TRAP_MODE=clamp'
+
+var CFLAGS = ' -Wimplicit-function-declaration -DHAVE_NFT=1 -s USE_PTHREADS=1'
 
 var PRE_FLAGS = ' --pre-js ' + path.resolve(__dirname, '../js/artoolkit.api.js') +' ';
 
@@ -228,7 +233,7 @@ var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
 */
 var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
 	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
-	+ FLAGS + ' -s WASM=0' + ' ' + DEFINES + PRE_FLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	+ FLAGS + ' -s WASM=0' + ' ' + DEFINES + PRE_FLAGS + CFLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	OUTPUT_PATH, OUTPUT_PATH, BUILD_MIN_FILE);
 
 var compile_wasm = format(EMCC + ' ' + INCLUDES + ' '

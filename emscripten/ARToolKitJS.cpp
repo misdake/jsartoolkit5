@@ -14,6 +14,9 @@
 #include <AR/video.h>
 #include <KPM/kpm.h>
 
+#include "ARMarkerNFT.h"
+#include "trackingSub.h"
+
 struct multi_marker {
 	int id;
 	ARMultiMarkerInfoT *multiMarkerHandle;
@@ -39,6 +42,7 @@ struct arController {
 
 	KpmHandle* kpmHandle;
 	AR2HandleT* ar2Handle;
+	THREAD_HANDLE_T *threadHandle = NULL;
 
 	int surfaceSetCount = 0; // Running NFT marker id
 	std::unordered_map<int, AR2SurfaceSetT*> surfaceSets;
@@ -193,15 +197,40 @@ extern "C" {
 		return 0;
 	}
 
+	THREAD_HANDLE_T *trackingInit(KpmHandle* kpmHandle){
+		// Start the KPM tracking thread.
+		THREAD_HANDLE_T *threadHandle;
+    threadHandle = trackingInitInit(kpmHandle);
+    if (!threadHandle) exit(-1);
+		return threadHandle;
+	}
+
 	int detectNFTMarker(int id) {
 		if (arControllers.find(id) == arControllers.end()) { return -1; }
 		arController *arc = &(arControllers[id]);
 
 		KpmResult *kpmResult = NULL;
+		// NFT results.
+    int detectedPage = -2; // -2 Tracking not inited, -1 tracking inited OK, >= 0 tracking online on page.
+		float trackingTrans[3][4];
 		int kpmResultNum = -1;
 
-        kpmMatching( arc->kpmHandle, arc->videoLuma );
-        kpmGetResult( arc->kpmHandle, &kpmResult, &kpmResultNum );
+        //kpmMatching( arc->kpmHandle, arc->videoLuma );
+        //kpmGetResult( arc->kpmHandle, &kpmResult, &kpmResultNum );
+				if (arc->threadHandle) {
+            // Perform NFT tracking.
+            float            err;
+            int              ret;
+            int              pageNo;
+
+            if( detectedPage == -2 ) {
+                trackingInitStart( arc->threadHandle, arc->videoLuma );
+                detectedPage = -1;
+            }
+            if( detectedPage == -1 ) {
+                kpmResultNum = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
+            }
+					}
         return kpmResultNum;
 	}
 
@@ -229,6 +258,29 @@ extern "C" {
 		//arc->pixFormat = arVideoGetPixelFormat();
 
 		arc->kpmHandle = createKpmHandle(arc->paramLT);
+		// AR2 init.
+    if( (arc->ar2Handle = ar2CreateHandle(arc->paramLT, arc->pixFormat, AR2_TRACKING_DEFAULT_THREAD_NUM)) == NULL ) {
+        ARLOGe("Error: ar2CreateHandle.\n");
+        //kpmDeleteHandle(arc->kpmHandle);
+        return (FALSE);
+    }
+    if (threadGetCPU() <= 1) {
+        ARLOGi("Using NFT tracking settings for a single CPU.\n");
+        ar2SetTrackingThresh(arc->ar2Handle, 5.0);
+        ar2SetSimThresh(arc->ar2Handle, 0.50);
+        ar2SetSearchFeatureNum(arc->ar2Handle, 16);
+        ar2SetSearchSize(arc->ar2Handle, 6);
+        ar2SetTemplateSize1(arc->ar2Handle, 6);
+        ar2SetTemplateSize2(arc->ar2Handle, 6);
+    } else {
+        ARLOGi("Using NFT tracking settings for more than one CPU.\n");
+        ar2SetTrackingThresh(arc->ar2Handle, 5.0);
+        ar2SetSimThresh(arc->ar2Handle, 0.50);
+        ar2SetSearchFeatureNum(arc->ar2Handle, 16);
+        ar2SetSearchSize(arc->ar2Handle, 12);
+        ar2SetTemplateSize1(arc->ar2Handle, 6);
+        ar2SetTemplateSize2(arc->ar2Handle, 6);
+    }
 
 		return 0;
 	}
@@ -239,6 +291,7 @@ extern "C" {
 		KpmRefDataSet *refDataSet;
 
 		KpmHandle *kpmHandle = arc->kpmHandle;
+		arc->threadHandle = trackingInit(arc->kpmHandle);
 
 		refDataSet = NULL;
 
