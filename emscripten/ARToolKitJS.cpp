@@ -93,28 +93,40 @@ extern "C" {
 
 		KpmResult *kpmResult = NULL;
 		int kpmResultNum = -1;
+		int              pageNo;
 
-        kpmGetResult( arc->kpmHandle, &kpmResult, &kpmResultNum );
+        //kpmGetResult( arc->kpmHandle, &kpmResult, &kpmResultNum );
+
 
 		int i, j, k;
         int flag = -1;
         float err = -1;
         float trans[3][4];
+				float trackingTrans[3][4];
+
+				kpmResultNum = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
+				ARLOGi("kpmResultNum is: %d\n", kpmResultNum);
+
         for( i = 0; i < kpmResultNum; i++ ) {
-            if (kpmResult[i].pageNo == markerIndex && kpmResult[i].camPoseF == 0 ) {
-	            if( flag == -1 || err > kpmResult[i].error ) { // Take the first or best result.
+            //if (kpmResult[i].pageNo == markerIndex && kpmResult[i].camPoseF == 0 ) {
+						if (pageNo == markerIndex ) {
+	           // if( flag == -1 || err > kpmResult[i].error ) { // Take the first or best result.
+							if( flag == -1 ) { // Take the first or best result.
 	                flag = i;
 	                err = kpmResult[i].error;
+									ARLOGe("error in the tracking");
 	            }
 	        }
         }
-
+				flag = kpmResultNum;
+				ARLOGi("flag is: %d\n", flag);
         if (flag > -1) {
             for (j = 0; j < 3; j++) {
             	for (k = 0; k < 4; k++) {
-            		trans[j][k] = kpmResult[flag].camPose[j][k];
+            		trans[j][k] = trackingTrans[j][k];
             	}
             }
+						//ARLOGi("trackingTrans %d\n", trans);
 			EM_ASM_({
 				var $a = arguments;
 				var i = 0;
