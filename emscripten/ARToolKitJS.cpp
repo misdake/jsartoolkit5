@@ -17,6 +17,8 @@
 #include "ARMarkerNFT.h"
 #include "trackingSub.h"
 
+#define PAGES_MAX               10
+
 struct multi_marker {
 	int id;
 	ARMultiMarkerInfoT *multiMarkerHandle;
@@ -46,6 +48,7 @@ struct arController {
 
 	int surfaceSetCount = 0; // Running NFT marker id
 	std::unordered_map<int, AR2SurfaceSetT*> surfaceSets;
+	AR2SurfaceSetT      *surfaceSet[PAGES_MAX];
 
 	ARdouble nearPlane = 0.0001;
 	ARdouble farPlane = 1000.0;
@@ -105,6 +108,11 @@ extern "C" {
 				float trackingTrans[3][4];
 
 				kpmResultNum = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
+				ar2SetInitTrans(arc->surfaceSet[pageNo], trackingTrans);
+				if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[pageNo], arc->videoLuma, trackingTrans, &err) < 0 ) {
+						ARLOGd("Tracking lost.\n");
+				}
+				//ar2SetInitTrans(surfaceSet[detectedPage], trackingTrans);
 				ARLOGi("kpmResultNum is: %d\n", kpmResultNum);
 
         for( i = 0; i < kpmResultNum; i++ ) {
@@ -400,6 +408,8 @@ extern "C" {
 
 		delete &arc->multi_markers;
 		delete arc;
+
+		trackingInitQuit(&arc->threadHandle);
 
 		return 0;
 	}
