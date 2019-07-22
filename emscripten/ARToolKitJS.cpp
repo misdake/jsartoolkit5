@@ -45,6 +45,7 @@ struct arController {
 	KpmHandle* kpmHandle;
 	AR2HandleT* ar2Handle;
 	THREAD_HANDLE_T *threadHandle = NULL;
+	int detectedPage  = -2;  // -2 Tracking not inited, -1 tracking inited OK, >= 0 tracking online on page.
 
 	int surfaceSetCount = 0; // Running NFT marker id
 	std::unordered_map<int, AR2SurfaceSetT*> surfaceSets;
@@ -97,23 +98,41 @@ extern "C" {
 		KpmResult *kpmResult = NULL;
 		int kpmResultNum = -1;
 		int              pageNo;
-
-        //kpmGetResult( arc->kpmHandle, &kpmResult, &kpmResultNum );
-
-
 		int i, j, k;
         int flag = -1;
-        float err = -1;
-        float trans[3][4];
-				float trackingTrans[3][4];
-
-				kpmResultNum = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
-				ar2SetInitTrans(arc->surfaceSet[pageNo], trackingTrans);
-				if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[pageNo], arc->videoLuma, trackingTrans, &err) < 0 ) {
-						ARLOGd("Tracking lost.\n");
+				float err = -1;
+				float trans[3][4];
+				float trackingTrans[3][4] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+				if (arc->threadHandle) {
+				int              ret;
+				if( arc->detectedPage == -1 ) {
+					ret = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
+					if( ret == 1 ) {
+							if (pageNo >= 0 && pageNo < arc->surfaceSetCount) {
+									ARLOGd("Detected page %d.\n", pageNo);
+									arc->detectedPage = pageNo;
+									ar2SetInitTrans(arc->surfaceSet[pageNo], trackingTrans);
+								} else {
+										ARLOGe("Detected bad page %d.\n", pageNo);
+										arc->detectedPage = -2;
+								}
+						} else if( ret < 0 ) {
+								ARLOGd("No page detected.\n");
+								arc->detectedPage = -2;
+						}
 				}
-				//ar2SetInitTrans(surfaceSet[detectedPage], trackingTrans);
-				ARLOGi("kpmResultNum is: %d\n", kpmResultNum);
+				if( arc->detectedPage >= 0 && arc->detectedPage < arc->surfaceSetCount) {
+					if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[pageNo], arc->videoLuma, trackingTrans, &err) < 0 ) {
+						ARLOGd("Tracking lost.\n");
+						arc->detectedPage = -2;
+				} else {
+						ARLOGd("Tracked page %d (max %d).\n", arc->detectedPage, arc->surfaceSetCount - 1);
+				}
+		}
+	} else {
+		ARLOGe("Error: threadHandle\n");
+		arc->detectedPage = -2;
+	}
 
         for( i = 0; i < kpmResultNum; i++ ) {
             //if (kpmResult[i].pageNo == markerIndex && kpmResult[i].camPoseF == 0 ) {
@@ -122,19 +141,19 @@ extern "C" {
 							if( flag == -1 ) { // Take the first or best result.
 	                flag = i;
 	                err = kpmResult[i].error;
-									ARLOGe("error in the tracking");
+									ARLOGe("error in the tracking: %d \n", err);
 	            }
 	        }
         }
-				flag = kpmResultNum;
-				ARLOGi("flag is: %d\n", flag);
-        if (flag > -1) {
+
+				//ARLOGi("flag is: %d\n", arc->detectedPage);
+        if (pageNo >= 0 && pageNo == arc->detectedPage) {
             for (j = 0; j < 3; j++) {
             	for (k = 0; k < 4; k++) {
             		trans[j][k] = trackingTrans[j][k];
             	}
             }
-						//ARLOGi("trackingTrans %d\n", trans);
+
 			EM_ASM_({
 				var $a = arguments;
 				var i = 0;
@@ -231,7 +250,6 @@ extern "C" {
 
 		KpmResult *kpmResult = NULL;
 		// NFT results.
-    int detectedPage = -2; // -2 Tracking not inited, -1 tracking inited OK, >= 0 tracking online on page.
 		float trackingTrans[3][4];
 		int kpmResultNum = -1;
 
@@ -243,12 +261,9 @@ extern "C" {
             int              ret;
             int              pageNo;
 
-            if( detectedPage == -2 ) {
+            if( arc->detectedPage == -2 ) {
                 trackingInitStart( arc->threadHandle, arc->videoLuma );
-                detectedPage = -1;
-            }
-            if( detectedPage == -1 ) {
-                kpmResultNum = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
+                arc->detectedPage = -1;
             }
 					}
         return kpmResultNum;
@@ -281,7 +296,7 @@ extern "C" {
 		// AR2 init.
     if( (arc->ar2Handle = ar2CreateHandle(arc->paramLT, arc->pixFormat, AR2_TRACKING_DEFAULT_THREAD_NUM)) == NULL ) {
         ARLOGe("Error: ar2CreateHandle.\n");
-        //kpmDeleteHandle(arc->kpmHandle);
+        kpmDeleteHandle(&arc->kpmHandle);
         return (FALSE);
     }
     if (threadGetCPU() <= 1) {
