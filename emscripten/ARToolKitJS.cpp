@@ -46,7 +46,7 @@ struct arController {
 	AR2HandleT* ar2Handle;
 	THREAD_HANDLE_T *threadHandle = NULL;
 	int detectedPage  = -2;  // -2 Tracking not inited, -1 tracking inited OK, >= 0 tracking online on page.
-
+	// Markers.
 	int surfaceSetCount = 0; // Running NFT marker id
 	std::unordered_map<int, AR2SurfaceSetT*> surfaceSets;
 	AR2SurfaceSetT      *surfaceSet[PAGES_MAX];
@@ -64,7 +64,10 @@ struct arController {
 
 std::unordered_map<int, arController> arControllers;
 std::unordered_map<int, ARParam> cameraParams;
-
+// ARMarker private: to verify
+//static ARFilterTransMatInfo *ftmi;
+//static ARdouble   filterCutoffFrequency;
+//static ARdouble   filterSampleRate;
 
 // ============================================================================
 //	Global variables
@@ -95,21 +98,27 @@ extern "C" {
 			return MARKER_INDEX_OUT_OF_BOUNDS;
 		}
 
-		KpmResult *kpmResult = NULL;
-		int kpmResultNum = -1;
+		//KpmResult *kpmResult = NULL;
+		//int kpmResultNum = -1;
 		int              pageNo;
 		int i, j, k;
         int flag = -1;
 				float err = -1;
 				float trans[3][4];
-				float trackingTrans[3][4] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+				float trackingTrans[3][4];
+				// filetring to verify
+				//filterCutoffFrequency = AR_FILTER_TRANS_MAT_CUTOFF_FREQ_DEFAULT;
+				//filterSampleRate = AR_FILTER_TRANS_MAT_SAMPLE_RATE_DEFAULT;
+				//ftmi = arFilterTransMatInit(filterSampleRate, filterCutoffFrequency);
 				if (arc->threadHandle) {
 				int              ret;
 				if( arc->detectedPage == -1 ) {
+					//ARLOGi("arc->detectedPage: %d \n",  arc->detectedPage);
 					ret = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
 					if( ret == 1 ) {
+						ARLOGi("page detected ret: %d \n", ret);
 							if (pageNo >= 0 && pageNo < arc->surfaceSetCount) {
-									ARLOGd("Detected page %d.\n", pageNo);
+									ARLOGi("Detected page %d.\n", pageNo);
 									arc->detectedPage = pageNo;
 									ar2SetInitTrans(arc->surfaceSet[pageNo], trackingTrans);
 								} else {
@@ -134,26 +143,13 @@ extern "C" {
 		arc->detectedPage = -2;
 	}
 
-        for( i = 0; i < kpmResultNum; i++ ) {
-            //if (kpmResult[i].pageNo == markerIndex && kpmResult[i].camPoseF == 0 ) {
-						if (pageNo == markerIndex ) {
-	           // if( flag == -1 || err > kpmResult[i].error ) { // Take the first or best result.
-							if( flag == -1 ) { // Take the first or best result.
-	                flag = i;
-	                err = kpmResult[i].error;
-									ARLOGe("error in the tracking: %d \n", err);
-	            }
-	        }
-        }
-
-				//ARLOGi("flag is: %d\n", arc->detectedPage);
-        if (pageNo >= 0 && pageNo == arc->detectedPage) {
+        //if (pageNo >= 0 && pageNo == arc->detectedPage) {
+					if (arc->detectedPage > -1) {
             for (j = 0; j < 3; j++) {
             	for (k = 0; k < 4; k++) {
             		trans[j][k] = trackingTrans[j][k];
             	}
             }
-
 			EM_ASM_({
 				var $a = arguments;
 				var i = 0;
