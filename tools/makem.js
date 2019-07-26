@@ -23,7 +23,7 @@ if (!EMSCRIPTEN_ROOT) {
 
 var EMCC = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, 'emcc') : 'emcc';
 var EMPP = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, 'em++') : 'em++';
-var OPTIMIZE_FLAGS = ' -O2 '; // -Oz for smallest size
+var OPTIMIZE_FLAGS = ' -Oz '; // -Oz for smallest size
 var MEM = 256 * 1024 * 1024; // 64MB
 
 
@@ -122,7 +122,9 @@ FLAGS += ' -s USE_ZLIB=1';
 FLAGS += ' --memory-init-file 0 '; // for memless file
 FLAGS += ' -s BINARYEN_TRAP_MODE=clamp'
 
-var CFLAGS = ' -Wimplicit-function-declaration -DHAVE_NFT=1 -s USE_PTHREADS=1'
+var CFLAGS = ' -Wimplicit-function-declaration -DHAVE_NFT=1';
+
+var PTHREADS = ' -s USE_PTHREADS=1 ';
 
 var PRE_FLAGS = ' --pre-js ' + path.resolve(__dirname, '../js/artoolkit.api.js') +' ';
 
@@ -196,17 +198,17 @@ function clean_builds() {
 
 var compile_arlib = format(EMCC + ' ' + INCLUDES + ' '
 	+ ar_sources.join(' ')
-	+ FLAGS + ' ' + DEFINES + ' -o {OUTPUT_PATH}libar.bc ',
+	+ FLAGS + ' ' + DEFINES + PTHREADS + ' -o {OUTPUT_PATH}libar.bc ',
 		OUTPUT_PATH);
 
  var compile_kpm = format(EMCC + ' ' + INCLUDES + ' '
  	+ kpm_sources.join(' ')
- 	+ FLAGS + ' ' + DEFINES + ' -o {OUTPUT_PATH}libkpm.bc ',
+ 	+ FLAGS + ' ' + DEFINES + PTHREADS + ' -o {OUTPUT_PATH}libkpm.bc ',
  		OUTPUT_PATH);
 
 var compile_libjpeg = format(EMCC + ' ' + INCLUDES + ' '
     + path.resolve(__dirname, LIBJPEG_ROOT) + '/' + libjpeg_sources
-	+ FLAGS + ' ' + DEFINES + ' -o {OUTPUT_PATH}libjpeg.bc ',
+	+ FLAGS + ' ' + DEFINES + PTHREADS + ' -o {OUTPUT_PATH}libjpeg.bc ',
 		OUTPUT_PATH);
 
 /*
@@ -233,7 +235,7 @@ var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
 */
 var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
 	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
-	+ FLAGS + ' -s WASM=0' + ' ' + DEFINES + PRE_FLAGS + CFLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	+ FLAGS + ' -s WASM=0' + ' ' + DEFINES + PRE_FLAGS + CFLAGS + PTHREADS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	OUTPUT_PATH, OUTPUT_PATH, BUILD_MIN_FILE);
 
 var compile_wasm = format(EMCC + ' ' + INCLUDES + ' '

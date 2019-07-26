@@ -112,6 +112,10 @@ extern "C" {
 				//ftmi = arFilterTransMatInit(filterSampleRate, filterCutoffFrequency);
 				if (arc->threadHandle) {
 				int              ret;
+				if( arc->detectedPage == -2 ) {
+						trackingInitStart( arc->threadHandle, arc->videoLuma );
+						arc->detectedPage = -1;
+				}
 				if( arc->detectedPage == -1 ) {
 					//ARLOGi("arc->detectedPage: %d \n",  arc->detectedPage);
 					ret = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
@@ -126,16 +130,16 @@ extern "C" {
 										arc->detectedPage = -2;
 								}
 						} else if( ret < 0 ) {
-								ARLOGd("No page detected.\n");
+								ARLOGi("No page detected.\n");
 								arc->detectedPage = -2;
 						}
 				}
 				if( arc->detectedPage >= 0 && arc->detectedPage < arc->surfaceSetCount) {
 					if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[pageNo], arc->videoLuma, trackingTrans, &err) < 0 ) {
-						ARLOGd("Tracking lost.\n");
+						ARLOGi("Tracking lost.\n");
 						arc->detectedPage = -2;
 				} else {
-						ARLOGd("Tracked page %d (max %d).\n", arc->detectedPage, arc->surfaceSetCount - 1);
+						ARLOGi("Tracked page %d (max %d).\n", arc->detectedPage, arc->surfaceSetCount - 1);
 				}
 		}
 	} else {
@@ -143,8 +147,8 @@ extern "C" {
 		arc->detectedPage = -2;
 	}
 
-        //if (pageNo >= 0 && pageNo == arc->detectedPage) {
-					if (arc->detectedPage > -1) {
+        if (arc->detectedPage >= 0 && arc->detectedPage < arc->surfaceSetCount ) {
+					//if (arc->detectedPage > -1) {
             for (j = 0; j < 3; j++) {
             	for (k = 0; k < 4; k++) {
             		trans[j][k] = trackingTrans[j][k];
@@ -251,7 +255,7 @@ extern "C" {
 
         //kpmMatching( arc->kpmHandle, arc->videoLuma );
         //kpmGetResult( arc->kpmHandle, &kpmResult, &kpmResultNum );
-				if (arc->threadHandle) {
+				/*if (arc->threadHandle) {
             // Perform NFT tracking.
             float            err;
             int              ret;
@@ -261,7 +265,7 @@ extern "C" {
                 trackingInitStart( arc->threadHandle, arc->videoLuma );
                 arc->detectedPage = -1;
             }
-					}
+					}*/
         return kpmResultNum;
 	}
 
