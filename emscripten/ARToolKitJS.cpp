@@ -103,7 +103,7 @@ extern "C" {
 		int              pageNo;
 		int i, j, k;
         int flag = -1;
-				float err = -1;
+				float err;
 				float trans[3][4];
 				float trackingTrans[3][4];
 				// filetring to verify
@@ -124,7 +124,7 @@ extern "C" {
 							if (pageNo >= 0 && pageNo < arc->surfaceSetCount) {
 									ARLOGi("Detected page %d.\n", pageNo);
 									arc->detectedPage = pageNo;
-									ar2SetInitTrans(arc->surfaceSet[pageNo], trackingTrans);
+									ar2SetInitTrans(arc->surfaceSet[arc->detectedPage], trackingTrans);
 								} else {
 										ARLOGe("Detected bad page %d.\n", pageNo);
 										arc->detectedPage = -2;
@@ -135,7 +135,7 @@ extern "C" {
 						}
 				}
 				if( arc->detectedPage >= 0 && arc->detectedPage < arc->surfaceSetCount) {
-					if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[pageNo], arc->videoLuma, trackingTrans, &err) < 0 ) {
+					if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[arc->detectedPage], arc->videoLuma, trackingTrans, &err) < 0 ) {
 						ARLOGi("Tracking lost.\n");
 						arc->detectedPage = -2;
 				} else {
@@ -322,7 +322,7 @@ extern "C" {
 
 	int loadNFTMarker(arController *arc, int surfaceSetCount, const char* datasetPathname) {
 		int i, pageNo;
-		AR2SurfaceSetT *surfaceSet;
+		//AR2SurfaceSetT *surfaceSet;
 		KpmRefDataSet *refDataSet;
 
 		KpmHandle *kpmHandle = arc->kpmHandle;
@@ -353,12 +353,12 @@ extern "C" {
 		// Load AR2 data.
 		ARLOGi("Reading %s.fset\n", datasetPathname);
 
-		if ((surfaceSet = ar2ReadSurfaceSet(datasetPathname, "fset", NULL)) == NULL ) {
+		if ((arc->surfaceSet[surfaceSetCount] = ar2ReadSurfaceSet(datasetPathname, "fset", NULL)) == NULL ) {
 		    ARLOGe("Error reading data from %s.fset\n", datasetPathname);
 		}
 		ARLOGi("  Done.\n");
 
-		arc->surfaceSets[surfaceSetCount] = surfaceSet;
+  	if (surfaceSetCount == PAGES_MAX) exit(-1);
 
 		if (kpmSetRefDataSet(kpmHandle, refDataSet) < 0) {
 		    ARLOGe("Error: kpmSetRefDataSet\n");
