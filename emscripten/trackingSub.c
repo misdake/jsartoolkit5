@@ -185,21 +185,11 @@ static void *trackingInitMain( THREAD_HANDLE_T *threadHandle )
         trackingInitHandle->flag = 0;
         for( i = 0; i < kpmResultNum; i++ ) {
             if( kpmResult[i].camPoseF != 0 ) continue;
-            ARLOGi("kpmGetPose OK.\n");
+            ARLOGd("kpmGetPose OK.\n");
             if( trackingInitHandle->flag == 0 || err > kpmResult[i].error ) { // Take the first or best result.
                 trackingInitHandle->flag = 1;
                 trackingInitHandle->page = kpmResult[i].pageNo;
                 for (j = 0; j < 3; j++) for (k = 0; k < 4; k++) trackingInitHandle->trans[j][k] = kpmResult[i].camPose[j][k];
-                /* only for testing
-                ARLOGi("kpmResult[1].camPose[0][0]: %d\n", kpmResult[i].camPose[0][0]);
-                ARLOGi("kpmResult[1].camPose[0][1]: %d\n", kpmResult[i].camPose[0][1]);
-                ARLOGi("kpmResult[1].camPose[0][2]: %d\n", kpmResult[i].camPose[0][2]);
-                ARLOGi("kpmResult[1].camPose[0][3]: %d\n", kpmResult[i].camPose[0][3]);
-                ARLOGi("kpmResult[1].camPose[0][0]: %d\n", kpmResult[i].camPose[1][0]);
-                ARLOGi("kpmResult[1].camPose[0][1]: %d\n", kpmResult[i].camPose[1][1]);
-                ARLOGi("kpmResult[1].camPose[0][2]: %d\n", kpmResult[i].camPose[1][2]);
-                ARLOGi("kpmResult[1].camPose[0][3]: %d\n", kpmResult[i].camPose[1][3]);
-                */
                 err = kpmResult[i].error;
             }
         }

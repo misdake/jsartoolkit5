@@ -117,7 +117,6 @@ extern "C" {
 						arc->detectedPage = -1;
 				}
 				if( arc->detectedPage == -1 ) {
-					//ARLOGi("arc->detectedPage: %d \n",  arc->detectedPage);
 					ret = trackingInitGetResult( arc->threadHandle, trackingTrans, &pageNo);
 					if( ret == 1 ) {
 						ARLOGi("page detected ret: %d \n", ret);
@@ -136,7 +135,6 @@ extern "C" {
 				}
 				//if( arc->detectedPage >= 0 && arc->detectedPage < arc->surfaceSetCount) {
 				if( arc->detectedPage >= 0) {
-					//ARLOGi("trackingTrans[2][2] %d\n", trackingTrans[2][2]);
 					if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[arc->detectedPage], arc->videoFrame, trackingTrans, &err) < 0 ) {
 						ARLOGi("Tracking lost.\n");
 						arc->detectedPage = -2;
