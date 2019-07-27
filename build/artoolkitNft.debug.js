@@ -46371,6 +46371,129 @@ function _try_realloc_chunk(i12, i9) {
  }
  return 0;
 }
+
+function _getNFTMarkerInfo(i1, i14) {
+ i1 = i1 | 0;
+ i14 = i14 | 0;
+ var i2 = 0, i3 = 0, i4 = 0, i5 = 0, i6 = 0, i7 = 0, i8 = 0, i9 = 0, i10 = 0, i11 = 0, i12 = 0, i13 = 0, i15 = 0, i16 = 0, i17 = 0, i18 = 0, i19 = 0;
+ i19 = STACKTOP;
+ STACKTOP = STACKTOP + 176 | 0;
+ if ((STACKTOP | 0) >= (STACK_MAX | 0)) abortStackOverflow(176);
+ i12 = i19 + 144 | 0;
+ i4 = i19 + 136 | 0;
+ i13 = i19 + 128 | 0;
+ i7 = i19 + 120 | 0;
+ i10 = i19 + 112 | 0;
+ i9 = i19 + 104 | 0;
+ i6 = i19 + 96 | 0;
+ i2 = i19 + 156 | 0;
+ i8 = i19 + 160 | 0;
+ i15 = i19 + 152 | 0;
+ i16 = i19 + 48 | 0;
+ i17 = i19;
+ HEAP32[i2 >> 2] = i1;
+ do if (!(__ZNSt3__212__hash_tableINS_17__hash_value_typeIi12arControllerEENS_22__unordered_map_hasherIiS3_NS_4hashIiEELb1EEENS_21__unordered_map_equalIiS3_NS_8equal_toIiEELb1EEENS_9allocatorIS3_EEE4findIiEENS_15__hash_iteratorIPNS_11__hash_nodeIS3_PvEEEERKT_(57036, i2) | 0)) i1 = HEAP32[3413] | 0; else {
+  i5 = __ZNSt3__213unordered_mapIi12arControllerNS_4hashIiEENS_8equal_toIiEENS_9allocatorINS_4pairIKiS1_EEEEEixERS8_(57036, i2) | 0;
+  i11 = i5 + 248 | 0;
+  if ((HEAP32[i11 >> 2] | 0) <= (i14 | 0)) {
+   i1 = HEAP32[3415] | 0;
+   break;
+  }
+  i2 = i5 + 240 | 0;
+  i3 = HEAP32[i2 >> 2] | 0;
+  L7 : do if (i3) {
+   i4 = i5 + 244 | 0;
+   i1 = HEAP32[i4 >> 2] | 0;
+   switch (i1 | 0) {
+   case -2:
+    {
+     _trackingInitStart(i3, HEAP32[i5 + 204 >> 2] | 0) | 0;
+     HEAP32[i4 >> 2] = -1;
+     i1 = HEAP32[i2 >> 2] | 0;
+     i18 = 8;
+     break;
+    }
+   case -1:
+    {
+     i1 = i3;
+     i18 = 8;
+     break;
+    }
+   default:
+    {}
+   }
+   if ((i18 | 0) == 8) {
+    i1 = _trackingInitGetResult(i1, i17, i8) | 0;
+    do if ((i1 | 0) != 1) {
+     if ((i1 | 0) < 0) {
+      _arLog(0, 1, 41447, i7);
+      HEAP32[i4 >> 2] = -2;
+      i18 = 30;
+      break L7;
+     }
+    } else {
+     HEAP32[i6 >> 2] = 1;
+     _arLog(0, 1, 41381, i6);
+     i1 = HEAP32[i8 >> 2] | 0;
+     if ((i1 | 0) > -1 ? (i1 | 0) < (HEAP32[i11 >> 2] | 0) : 0) {
+      HEAP32[i9 >> 2] = i1;
+      _arLog(0, 1, 41405, i9);
+      i10 = HEAP32[i8 >> 2] | 0;
+      HEAP32[i4 >> 2] = i10;
+      _ar2SetInitTrans(HEAP32[i5 + 272 + (i10 << 2) >> 2] | 0, i17) | 0;
+      break;
+     }
+     HEAP32[i10 >> 2] = i1;
+     _arLog(0, 3, 41424, i10);
+     HEAP32[i4 >> 2] = -2;
+     i18 = 30;
+     break L7;
+    } while (0);
+    i1 = HEAP32[i4 >> 2] | 0;
+   }
+   if ((i1 | 0) > -1) {
+    do if ((i1 | 0) < (HEAP32[i11 >> 2] | 0)) if ((_ar2Tracking(HEAP32[i5 + 236 >> 2] | 0, HEAP32[i5 + 272 + (i1 << 2) >> 2] | 0, HEAP32[i5 + 196 >> 2] | 0, i17, i15) | 0) >= 0) {
+     i1 = (HEAP32[i11 >> 2] | 0) + -1 | 0;
+     HEAP32[i12 >> 2] = HEAP32[i4 >> 2];
+     HEAP32[i12 + 4 >> 2] = i1;
+     _arLog(0, 1, 41503, i12);
+     i1 = HEAP32[i4 >> 2] | 0;
+     if ((i1 | 0) > -1) break; else {
+      i18 = 30;
+      break L7;
+     }
+    } else {
+     _arLog(0, 1, 41466, i13);
+     HEAP32[i4 >> 2] = -2;
+     i18 = 30;
+     break L7;
+    } while (0);
+    if ((i1 | 0) < (HEAP32[i11 >> 2] | 0)) {
+     i2 = 0;
+     while (1) {
+      if ((i2 | 0) == 3) break;
+      i1 = 0;
+      while (1) {
+       if ((i1 | 0) == 4) break;
+       HEAP32[i16 + (i2 << 4) + (i1 << 2) >> 2] = HEAP32[i17 + (i2 << 4) + (i1 << 2) >> 2];
+       i1 = i1 + 1 | 0;
+      }
+      i2 = i2 + 1 | 0;
+     }
+     _emscripten_asm_const_iiddddddddddddd(3, i14 | 0, +(+HEAPF32[i15 >> 2]), +(+HEAPF32[i16 >> 2]), +(+HEAPF32[i16 + 4 >> 2]), +(+HEAPF32[i16 + 8 >> 2]), +(+HEAPF32[i16 + 12 >> 2]), +(+HEAPF32[i16 + 16 >> 2]), +(+HEAPF32[i16 + 20 >> 2]), +(+HEAPF32[i16 + 24 >> 2]), +(+HEAPF32[i16 + 28 >> 2]), +(+HEAPF32[i16 + 32 >> 2]), +(+HEAPF32[i16 + 36 >> 2]), +(+HEAPF32[i16 + 40 >> 2]), +(+HEAPF32[i16 + 44 >> 2])) | 0;
+    } else i18 = 30;
+   } else i18 = 30;
+  } else {
+   _arLog(0, 3, 41482, i4);
+   HEAP32[i5 + 244 >> 2] = -2;
+   i18 = 30;
+  } while (0);
+  if ((i18 | 0) == 30) _emscripten_asm_const_ii(4, i14 | 0) | 0;
+  i1 = 0;
+ } while (0);
+ STACKTOP = i19;
+ return i1 | 0;
+}
 function _examine_app0(i14, i11, i2, i1) {
  i14 = i14 | 0;
  i11 = i11 | 0;
@@ -47028,124 +47151,6 @@ function __ZNKSt3__29money_putIcNS_19ostreambuf_iteratorIcNS_11char_traitsIcEEEE
  __ZNSt3__212basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEED2Ev(i20);
  __ZNSt3__26localeD2Ev(i26);
  STACKTOP = i27;
- return i1 | 0;
-}
-
-function _getNFTMarkerInfo(i1, i14) {
- i1 = i1 | 0;
- i14 = i14 | 0;
- var i2 = 0, i3 = 0, i4 = 0, i5 = 0, i6 = 0, i7 = 0, i8 = 0, i9 = 0, i10 = 0, i11 = 0, i12 = 0, i13 = 0, i15 = 0, i16 = 0, i17 = 0, i18 = 0, i19 = 0;
- i19 = STACKTOP;
- STACKTOP = STACKTOP + 176 | 0;
- if ((STACKTOP | 0) >= (STACK_MAX | 0)) abortStackOverflow(176);
- i12 = i19 + 144 | 0;
- i4 = i19 + 136 | 0;
- i13 = i19 + 128 | 0;
- i8 = i19 + 120 | 0;
- i11 = i19 + 112 | 0;
- i10 = i19 + 104 | 0;
- i7 = i19 + 96 | 0;
- i2 = i19 + 156 | 0;
- i9 = i19 + 160 | 0;
- i15 = i19 + 152 | 0;
- i16 = i19 + 48 | 0;
- i17 = i19;
- HEAP32[i2 >> 2] = i1;
- do if (!(__ZNSt3__212__hash_tableINS_17__hash_value_typeIi12arControllerEENS_22__unordered_map_hasherIiS3_NS_4hashIiEELb1EEENS_21__unordered_map_equalIiS3_NS_8equal_toIiEELb1EEENS_9allocatorIS3_EEE4findIiEENS_15__hash_iteratorIPNS_11__hash_nodeIS3_PvEEEERKT_(57036, i2) | 0)) i1 = HEAP32[3413] | 0; else {
-  i5 = __ZNSt3__213unordered_mapIi12arControllerNS_4hashIiEENS_8equal_toIiEENS_9allocatorINS_4pairIKiS1_EEEEEixERS8_(57036, i2) | 0;
-  i6 = i5 + 248 | 0;
-  if ((HEAP32[i6 >> 2] | 0) <= (i14 | 0)) {
-   i1 = HEAP32[3415] | 0;
-   break;
-  }
-  i2 = i5 + 240 | 0;
-  i3 = HEAP32[i2 >> 2] | 0;
-  L7 : do if (i3) {
-   i4 = i5 + 244 | 0;
-   i1 = HEAP32[i4 >> 2] | 0;
-   switch (i1 | 0) {
-   case -2:
-    {
-     _trackingInitStart(i3, HEAP32[i5 + 204 >> 2] | 0) | 0;
-     HEAP32[i4 >> 2] = -1;
-     i1 = HEAP32[i2 >> 2] | 0;
-     i18 = 8;
-     break;
-    }
-   case -1:
-    {
-     i1 = i3;
-     i18 = 8;
-     break;
-    }
-   default:
-    {}
-   }
-   if ((i18 | 0) == 8) {
-    i1 = _trackingInitGetResult(i1, i17, i9) | 0;
-    do if ((i1 | 0) != 1) {
-     if ((i1 | 0) < 0) {
-      _arLog(0, 1, 41447, i8);
-      HEAP32[i4 >> 2] = -2;
-      i18 = 29;
-      break L7;
-     }
-    } else {
-     HEAP32[i7 >> 2] = 1;
-     _arLog(0, 1, 41381, i7);
-     i1 = HEAP32[i9 >> 2] | 0;
-     if ((i1 | 0) > -1 ? (i1 | 0) < (HEAP32[i6 >> 2] | 0) : 0) {
-      HEAP32[i10 >> 2] = i1;
-      _arLog(0, 1, 41405, i10);
-      i11 = HEAP32[i9 >> 2] | 0;
-      HEAP32[i4 >> 2] = i11;
-      _ar2SetInitTrans(HEAP32[i5 + 272 + (i11 << 2) >> 2] | 0, i17) | 0;
-      break;
-     }
-     HEAP32[i11 >> 2] = i1;
-     _arLog(0, 3, 41424, i11);
-     HEAP32[i4 >> 2] = -2;
-     i18 = 29;
-     break L7;
-    } while (0);
-    i1 = HEAP32[i4 >> 2] | 0;
-   }
-   if ((i1 | 0) > -1) {
-    if ((_ar2Tracking(HEAP32[i5 + 236 >> 2] | 0, HEAP32[i5 + 272 + (i1 << 2) >> 2] | 0, HEAP32[i5 + 196 >> 2] | 0, i17, i15) | 0) < 0) {
-     _arLog(0, 1, 41466, i13);
-     HEAP32[i4 >> 2] = -2;
-     i18 = 29;
-     break;
-    }
-    i13 = (HEAP32[i6 >> 2] | 0) + -1 | 0;
-    HEAP32[i12 >> 2] = HEAP32[i4 >> 2];
-    HEAP32[i12 + 4 >> 2] = i13;
-    _arLog(0, 1, 41503, i12);
-    i13 = HEAP32[i4 >> 2] | 0;
-    if ((i13 | 0) > -1 ? (i13 | 0) < (HEAP32[i6 >> 2] | 0) : 0) {
-     i2 = 0;
-     while (1) {
-      if ((i2 | 0) == 3) break;
-      i1 = 0;
-      while (1) {
-       if ((i1 | 0) == 4) break;
-       HEAP32[i16 + (i2 << 4) + (i1 << 2) >> 2] = HEAP32[i17 + (i2 << 4) + (i1 << 2) >> 2];
-       i1 = i1 + 1 | 0;
-      }
-      i2 = i2 + 1 | 0;
-     }
-     _emscripten_asm_const_iiddddddddddddd(3, i14 | 0, +(+HEAPF32[i15 >> 2]), +(+HEAPF32[i16 >> 2]), +(+HEAPF32[i16 + 4 >> 2]), +(+HEAPF32[i16 + 8 >> 2]), +(+HEAPF32[i16 + 12 >> 2]), +(+HEAPF32[i16 + 16 >> 2]), +(+HEAPF32[i16 + 20 >> 2]), +(+HEAPF32[i16 + 24 >> 2]), +(+HEAPF32[i16 + 28 >> 2]), +(+HEAPF32[i16 + 32 >> 2]), +(+HEAPF32[i16 + 36 >> 2]), +(+HEAPF32[i16 + 40 >> 2]), +(+HEAPF32[i16 + 44 >> 2])) | 0;
-    } else i18 = 29;
-   } else i18 = 29;
-  } else {
-   _arLog(0, 3, 41482, i4);
-   HEAP32[i5 + 244 >> 2] = -2;
-   i18 = 29;
-  } while (0);
-  if ((i18 | 0) == 29) _emscripten_asm_const_ii(4, i14 | 0) | 0;
-  i1 = 0;
- } while (0);
- STACKTOP = i19;
  return i1 | 0;
 }
 
