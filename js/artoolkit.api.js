@@ -1,7 +1,13 @@
 ;(function() {
 	'use strict';
 
-	/*if(window.artoolkit_wasm_url) {
+	var scope;
+	if (typeof window !== 'undefined') {
+		scope = window;
+	} else {
+		scope = self;
+	}
+	if(scope.artoolkit_wasm_url) {
          function downloadWasm(url) {
              return new Promise(function(resolve, reject) {
              var wasmXHR = new XMLHttpRequest();
@@ -13,7 +19,7 @@
              });
          }
 
-          var wasm = downloadWasm(window.artoolkit_wasm_url);
+          var wasm = downloadWasm(scope.artoolkit_wasm_url);
 
           // Module.instantiateWasm is a user-implemented callback which the Emscripten runtime calls to perform
          // the WebAssembly instantiation action. The callback function will be called with two parameters, imports
@@ -36,7 +42,7 @@
              });
              return {}; // Compiling asynchronously, no exports.
          }
-     }*/
+     }
 
 	/**
 		The ARController is the main object for doing AR marker detection with JSARToolKit.
@@ -1918,13 +1924,6 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 		}
 	}
 
-	var scope;
-	if (typeof window !== 'undefined') {
-		scope = window;
-	} else {
-		scope = self;
-	}
-
 	/* Exports */
 	scope.artoolkit = artoolkit;
 	scope.ARController = ARController;
@@ -1933,7 +1932,9 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 	if (scope.Module) {
 		scope.Module.onRuntimeInitialized = function() {
 		runWhenLoaded();
-	}
+		var event = new Event('artoolkit-loaded');
+            scope.dispatchEvent(event);
+		}
 	} else {
 		scope.Module = {
 			onRuntimeInitialized: function() {
