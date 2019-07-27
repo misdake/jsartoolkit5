@@ -74,7 +74,7 @@ int trackingInitQuit( THREAD_HANDLE_T **threadHandle_p )
         return (-1);
     }
     if (!*threadHandle_p) return 0;
-    
+
     threadWaitQuit( *threadHandle_p );
     trackingInitHandle = (TrackingInitHandle *)threadGetArg(*threadHandle_p);
     if (trackingInitHandle) {
@@ -94,7 +94,7 @@ THREAD_HANDLE_T *trackingInitInit( KpmHandle *kpmHandle )
         ARLOGe("trackingInitInit(): Error: NULL KpmHandle.\n");
         return (NULL);
     }
-    
+
     trackingInitHandle = (TrackingInitHandle *)malloc(sizeof(TrackingInitHandle));
     if( trackingInitHandle == NULL ) return NULL;
     trackingInitHandle->kpmHandle = kpmHandle;
@@ -114,7 +114,7 @@ int trackingInitStart( THREAD_HANDLE_T *threadHandle, ARUint8 *imageLumaPtr )
         ARLOGe("trackingInitStart(): Error: NULL threadHandle or imagePtr.\n");
         return (-1);
     }
-    
+
     trackingInitHandle = (TrackingInitHandle *)threadGetArg(threadHandle);
     if (!trackingInitHandle) {
         ARLOGe("trackingInitStart(): Error: NULL trackingInitHandle.\n");
@@ -135,7 +135,7 @@ int trackingInitGetResult( THREAD_HANDLE_T *threadHandle, float trans[3][4], int
         ARLOGe("trackingInitGetResult(): Error: NULL threadHandle or trans or page.\n");
         return (-1);
     }
-    
+
     if( threadGetStatus( threadHandle ) == 0 ) return 0;
     threadEndWait( threadHandle );
     trackingInitHandle = (TrackingInitHandle *)threadGetArg(threadHandle);
@@ -175,7 +175,7 @@ static void *trackingInitMain( THREAD_HANDLE_T *threadHandle )
         return (NULL);
     }
     ARLOGi("Start tracking thread.\n");
-    
+
     kpmGetResult( kpmHandle, &kpmResult, &kpmResultNum );
 
     for(;;) {
@@ -185,11 +185,21 @@ static void *trackingInitMain( THREAD_HANDLE_T *threadHandle )
         trackingInitHandle->flag = 0;
         for( i = 0; i < kpmResultNum; i++ ) {
             if( kpmResult[i].camPoseF != 0 ) continue;
-            ARLOGd("kpmGetPose OK.\n");
+            ARLOGi("kpmGetPose OK.\n");
             if( trackingInitHandle->flag == 0 || err > kpmResult[i].error ) { // Take the first or best result.
                 trackingInitHandle->flag = 1;
                 trackingInitHandle->page = kpmResult[i].pageNo;
                 for (j = 0; j < 3; j++) for (k = 0; k < 4; k++) trackingInitHandle->trans[j][k] = kpmResult[i].camPose[j][k];
+                /* only for testing
+                ARLOGi("kpmResult[1].camPose[0][0]: %d\n", kpmResult[i].camPose[0][0]);
+                ARLOGi("kpmResult[1].camPose[0][1]: %d\n", kpmResult[i].camPose[0][1]);
+                ARLOGi("kpmResult[1].camPose[0][2]: %d\n", kpmResult[i].camPose[0][2]);
+                ARLOGi("kpmResult[1].camPose[0][3]: %d\n", kpmResult[i].camPose[0][3]);
+                ARLOGi("kpmResult[1].camPose[0][0]: %d\n", kpmResult[i].camPose[1][0]);
+                ARLOGi("kpmResult[1].camPose[0][1]: %d\n", kpmResult[i].camPose[1][1]);
+                ARLOGi("kpmResult[1].camPose[0][2]: %d\n", kpmResult[i].camPose[1][2]);
+                ARLOGi("kpmResult[1].camPose[0][3]: %d\n", kpmResult[i].camPose[1][3]);
+                */
                 err = kpmResult[i].error;
             }
         }

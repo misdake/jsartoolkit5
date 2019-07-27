@@ -134,8 +134,10 @@ extern "C" {
 								arc->detectedPage = -2;
 						}
 				}
-				if( arc->detectedPage >= 0 && arc->detectedPage < arc->surfaceSetCount) {
-					if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[arc->detectedPage], arc->videoLuma, trackingTrans, &err) < 0 ) {
+				//if( arc->detectedPage >= 0 && arc->detectedPage < arc->surfaceSetCount) {
+				if( arc->detectedPage >= 0) {
+					//ARLOGi("trackingTrans[2][2] %d\n", trackingTrans[2][2]);
+					if( ar2Tracking(arc->ar2Handle, arc->surfaceSet[arc->detectedPage], arc->videoFrame, trackingTrans, &err) < 0 ) {
 						ARLOGi("Tracking lost.\n");
 						arc->detectedPage = -2;
 				} else {
