@@ -542,6 +542,7 @@
 	*/
 	ARController.prototype.loadNFTMarker = function(markerURL, onSuccess, onError) {
 		var self = this;
+		this._setupAR2Threads();
 		return artoolkit.addNFTMarker(this.id, markerURL, function(id) {
 			self.nftMarkerCount = id + 1;
 			onSuccess(id);
@@ -1235,6 +1236,10 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 		artoolkit.setupAR2(this.id);
 	};
 
+	ARController.prototype._setupAR2Threads = function() {
+		artoolkit.setupAR2Threads(this.id);
+	};
+
 	ARController.prototype._copyImageToHeap = function(image) {
 		if (!image) {
 			image = this.image;
@@ -1692,6 +1697,7 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 		'teardown',
 
 		'setupAR2',
+		'setupAR2Threads',
 
 		'setLogLevel',
 		'getLogLevel',

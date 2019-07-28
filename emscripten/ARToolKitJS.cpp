@@ -288,11 +288,17 @@ extern "C" {
 	int setupAR2(int id) {
 		if (arControllers.find(id) == arControllers.end()) { return -1; }
 		arController *arc = &(arControllers[id]);
-		//arc->pixFormat = arVideoGetPixelFormat();
 
 		arc->kpmHandle = createKpmHandle(arc->paramLT);
-		// AR2 init.
-    if( (arc->ar2Handle = ar2CreateHandle(arc->paramLT, arc->pixFormat, AR2_TRACKING_DEFAULT_THREAD_NUM)) == NULL ) {
+
+		return 0;
+	}
+
+	int setupAR2Threads(int id) {
+		if (arControllers.find(id) == arControllers.end()) { return -1; }
+		arController *arc = &(arControllers[id]);
+
+		if( (arc->ar2Handle = ar2CreateHandle(arc->paramLT, arc->pixFormat, AR2_TRACKING_DEFAULT_THREAD_NUM)) == NULL ) {
         ARLOGe("Error: ar2CreateHandle.\n");
         kpmDeleteHandle(&arc->kpmHandle);
         return (FALSE);
@@ -314,9 +320,9 @@ extern "C" {
         ar2SetTemplateSize1(arc->ar2Handle, 6);
         ar2SetTemplateSize2(arc->ar2Handle, 6);
     }
-
 		return 0;
 	}
+
 
 	int loadNFTMarker(arController *arc, int surfaceSetCount, const char* datasetPathname) {
 		int i, pageNo;
