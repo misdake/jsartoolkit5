@@ -134,6 +134,8 @@ FLAGS += ' -msse2';
 FLAGS += ' -msse3';
 FLAGS += ' -mssse3';
 
+var EXPORTED_FUNCTION = ' -s EXPORTED_FUNCTIONS=["_transferDataToHeap"] -s EXTRA_EXPORTED_RUNTIME_METHODS=["cwrap"]';
+
 /* DEBUG FLAGS */
 var DEBUG_FLAGS = ' -g ';
 // DEBUG_FLAGS += ' -s ASSERTIONS=2 '
@@ -225,7 +227,7 @@ var compile_combine = format(EMCC + ' ' + INCLUDES + ' '
 */
 var compile_combine = format(EMCC + ' ' + INCLUDES + ' '
 	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
-	+ FLAGS + ' -s WASM=0' + ' '  + DEBUG_FLAGS + DEFINES + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	+ FLAGS + ' -s WASM=0' + ' '  + DEBUG_FLAGS + EXPORTED_FUNCTION + DEFINES + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	OUTPUT_PATH, OUTPUT_PATH, BUILD_DEBUG_FILE);
 /*
 var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
@@ -235,12 +237,12 @@ var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
 */
 var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
 	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
-	+ FLAGS + ' -s WASM=0' + ' ' + DEFINES + PRE_FLAGS + CFLAGS + PTHREADS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	+ FLAGS + ' -s WASM=0' + ' ' + EXPORTED_FUNCTION + DEFINES + PRE_FLAGS + CFLAGS + PTHREADS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	OUTPUT_PATH, OUTPUT_PATH, BUILD_MIN_FILE);
 
 var compile_wasm = format(EMCC + ' ' + INCLUDES + ' '
 	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
-	+ FLAGS + DEFINES + PRE_FLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
+	+ FLAGS + EXPORTED_FUNCTION + DEFINES + PRE_FLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	OUTPUT_PATH, OUTPUT_PATH, BUILD_WASM_FILE);
 
 /*

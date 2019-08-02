@@ -1205,8 +1205,6 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 	ARController.prototype._initialize = function() {
 		this.id = artoolkit.setup(this.canvas.width, this.canvas.height, this.cameraParam.id);
 
-		this._initNFT();
-
 		var params = artoolkit.frameMalloc;
 		this.framepointer = params.framepointer;
 		this.framesize = params.framesize;
@@ -1220,6 +1218,8 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 
 		this.setProjectionNearPlane(0.1)
 		this.setProjectionFarPlane(1000);
+
+		this._initNFT();
 
 		setTimeout(function() {
 			if (this.onload) {
@@ -1273,12 +1273,11 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 			}
 
 	if (this.dataHeap) {
-		this.dataHeap.set( data );
+		 transferDataToHeap(this.id,  data );
 		return true;
 	}
 	return false;
 };
-
 
 	ARController.prototype._debugMarker = function(marker) {
 		var vertex, pos;
@@ -1756,6 +1755,8 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 		'getImageProcMode',
 	];
 
+	var transferDataToHeap;
+
 	function runWhenLoaded() {
 		FUNCTIONS.forEach(function(n) {
 			artoolkit[n] = Module[n];
@@ -1936,10 +1937,13 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 	scope.ARCameraParam = ARCameraParam;
 
 	if (scope.Module) {
+		scope.Module.preRun = function() {
+			transferDataToHeap = Module.cwrap('transferDataToHeap', 'null', ['number', 'array']);
 		scope.Module.onRuntimeInitialized = function() {
 		runWhenLoaded();
 		var event = new Event('artoolkit-loaded');
             scope.dispatchEvent(event);
+			}
 		}
 	} else {
 		scope.Module = {

@@ -825,6 +825,20 @@ extern "C" {
 		return -1;
 	}
 
+	/*
+	 * Transfer data
+	 */
+
+	void transferDataToHeap(int id, ARUint8  *data) {
+		if (arControllers.find(id) == arControllers.end()) { return; }
+		arController *arc = &(arControllers[id]);
+
+		if (data != NULL) {
+			arc->videoFrame = data;
+		} else {
+			ARLOGi("data for DataHeap empty!");
+		}
+	}
 
 
 
