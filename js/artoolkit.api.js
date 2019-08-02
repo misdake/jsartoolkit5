@@ -1947,6 +1947,9 @@ ARController.prototype.arglCameraViewRHf = function(glMatrix, glRhMatrix, scale)
 		}
 	} else {
 		scope.Module = {
+			preRun: function() {
+				transferDataToHeap = Module.cwrap('transferDataToHeap', 'null', ['number', 'array']);
+			},
 			onRuntimeInitialized: function() {
 				runWhenLoaded();
 			}
