@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <AR/ar.h>
-//#include <AR/gsub_lite.h>
-// #include <AR/gsub_es2.h>
 #include <AR/arMulti.h>
 #include <emscripten.h>
 #include <string>
@@ -13,8 +11,6 @@
 #include <AR/paramGL.h>
 #include <AR/video.h>
 #include <KPM/kpm.h>
-
-#include "ARMarkerNFT.h"
 #include "trackingSub.h"
 
 #define PAGES_MAX               10
