@@ -42,6 +42,8 @@ window.ARThreeOnLoad = function() {
 		document.body.className = arController.orientation;
 
 		var renderer = new THREE.WebGLRenderer({antialias: true});
+		renderer.gammaOutput = true;
+		renderer.gammaFactor = 2.2;
 		if (arController.orientation === 'portrait') {
 			var w = (window.innerWidth / arController.videoHeight) * arController.videoWidth;
 			var h = window.innerWidth;
@@ -70,6 +72,14 @@ window.ARThreeOnLoad = function() {
 			new THREE.SphereGeometry(0.5, 8, 8),
 			new THREE.MeshNormalMaterial()
 		);
+
+		var ambient = new THREE.AmbientLight( 0x222222 );
+					arScene.scene.add( ambient );
+
+		var directionalLight = new THREE.DirectionalLight( 0xdddddd, 4 );
+					directionalLight.position.set( 0, 0, 1 ).normalize();
+					arScene.scene.add( directionalLight );
+
 		sphere.material.flatShading;
 		sphere.position.z = 40;
 		sphere.position.x = 80;
@@ -81,11 +91,9 @@ window.ARThreeOnLoad = function() {
 			//markerRoot.add(sphere);
       var loader = new THREE.GLTFLoader();
   						loader.load( 'Data/models/CesiumMan/glTF/CesiumMan.gltf', function ( gltf ) {
-                gltf.scene.rotation.x = -0.5*Math.PI;
-                gltf.scene.scale = 40;
+                gltf.scene.rotation.x = 0.5*Math.PI;
   							markerRoot.add( gltf.scene );
   						} , undefined, function ( error ) {
-
   	             console.error( error );
                });
 			arScene.scene.add(markerRoot);
@@ -95,10 +103,13 @@ window.ARThreeOnLoad = function() {
 			var markerRoot = arController.createThreeMarker(markerId);
       var loader = new THREE.GLTFLoader();
   						loader.load( 'Data/models/CesiumMan/glTF/CesiumMan.gltf', function ( gltf ) {
-                gltf.scene.rotation.x = -0.5*Math.PI;
+                gltf.scene.rotation.x = 0.5*Math.PI;;
+								gltf.animations.duration = 2;
+								var mixer = new THREE.AnimationMixer( gltf.scene );
+								var action = mixer.clipAction( gltf.animations[0] );
+								action.play();
   							markerRoot.add( gltf.scene );
   						} , undefined, function ( error ) {
-
   	             console.error( error );
                });
 			arScene.scene.add(markerRoot);
