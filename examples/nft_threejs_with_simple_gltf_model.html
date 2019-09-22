@@ -86,20 +86,25 @@ window.ARThreeOnLoad = function() {
 		sphere.position.y = 80;
 		sphere.scale.set(80,80,80);
 
+		var obj = new THREE.Object3D();
+		var loader = new THREE.GLTFLoader();
+		loader.load( 'Data/models/Duck/glTF/Duck.gltf', function ( gltf ) {
+			gltf.scene.rotation.x = 0.5*Math.PI;
+			obj = gltf.scene;
+			obj.position.z = 40;
+			obj.position.x = 80;
+			obj.position.y = 80;
+			obj.scale.set(80,80,80);
+			} , undefined, function ( error ) {
+						console.error( error );
+				});
+
 		arController.loadNFTMarker('DataNFT/pinball', function(markerId) {
 			var markerRoot = arController.createThreeNFTMarker(markerId);
-			//markerRoot.add(sphere);
-      var loader = new THREE.GLTFLoader();
-  						loader.load( 'Data/models/Duck/glTF/Duck.gltf', function ( gltf ) {
-                gltf.scene.rotation.x = 0.5*Math.PI;
-  							markerRoot.add( gltf.scene );
-  						} , undefined, function ( error ) {
-  	             console.error( error );
-               });
+				markerRoot.add( obj );
 			arScene.scene.add(markerRoot);
 		});
-		const mixers = [];
-		const clock = new THREE.Clock();
+
 		arController.loadMarker('Data/patt.kanji', function(markerId) {
 			var markerRoot = arController.createThreeMarker(markerId);
 
@@ -110,6 +115,7 @@ window.ARThreeOnLoad = function() {
   						} , undefined, function ( error ) {
   	             console.error( error );
                });
+
 			arScene.scene.add(markerRoot);
 		});
 
