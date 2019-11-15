@@ -2,3 +2,5 @@ doc/reference
 node_modules
 build/*.bc
 emscripten/libjpeg/
+/.idea/
+/package-lock.json

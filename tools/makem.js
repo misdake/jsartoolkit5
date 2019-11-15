@@ -24,7 +24,7 @@ if (!EMSCRIPTEN_ROOT) {
 var EMCC = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, 'emcc') : 'emcc';
 var EMPP = EMSCRIPTEN_ROOT ? path.resolve(EMSCRIPTEN_ROOT, 'em++') : 'em++';
 var OPTIMIZE_FLAGS = ' -Oz '; // -Oz for smallest size
-var MEM = 256 * 1024 * 1024; // 64MB
+var MEM = 64 * 1024 * 1024; // 64MB
 
 
 var SOURCE_PATH = path.resolve(__dirname, '../emscripten/') + '/';
@@ -42,21 +42,32 @@ MAIN_SOURCES = MAIN_SOURCES.map(function(src) {
 	return path.resolve(SOURCE_PATH, src);
 }).join(' ');
 
-var ar_sources = [
+var glob = require("glob");
+function match(pattern) {
+	var r = glob.sync('emscripten/artoolkit5/lib/SRC/' + pattern);
+	return r;
+}
+function matchAll(patterns, prefix="") {
+	let r = [];
+	for(let pattern of patterns) {
+		r.push(...(match(prefix + pattern)));
+	}
+	return r;
+}
+
+var ar_sources = matchAll([
 	'AR/arLabelingSub/*.c',
 	'AR/*.c',
 	'ARICP/*.c',
 	'ARMulti/*.c',
 	'Video/video.c',
 	'ARUtil/log.c',
-  'ARUtil/file_utils.c',
+    'ARUtil/file_utils.c',
 	//'Video/videoLuma.c',
 	//'Gl/gsub_lite.c',
-].map(function(src) {
-	return path.resolve(__dirname, ARTOOLKIT5_ROOT + '/lib/SRC/', src);
-});
+]);
 
-var ar2_sources = [
+var ar2_sources = matchAll([
 	'handle.c',
 	'imageSet.c',
 	'jpeg.c',
@@ -73,11 +84,9 @@ var ar2_sources = [
 	'searchPoint.c',
 	'coord.c',
 	'util.c',
-].map(function(src) {
-	return path.resolve(__dirname, ARTOOLKIT5_ROOT + '/lib/SRC/AR2/', src);
-});
+], 'AR2/');
 
-var kpm_sources = [
+var kpm_sources = matchAll([
 	'kpmHandle.c*',
 	'kpmRefDataSet.c*',
 	'kpmMatching.c*',
@@ -97,9 +106,7 @@ var kpm_sources = [
 	'FreakMatcher/framework/image.c*',
 	'FreakMatcher/framework/logger.c*',
 	'FreakMatcher/framework/timers.c*',
-].map(function(src) {
-	return path.resolve(__dirname, ARTOOLKIT5_ROOT + '/lib/SRC/KPM/', src);
-});
+], 'KPM/');
 
 if (HAVE_NFT) {
 	ar_sources = ar_sources
@@ -117,7 +124,7 @@ FLAGS += ' -s USE_ZLIB=1';
 //FLAGS += ' -s ERROR_ON_UNDEFINED_SYMBOLS=0';
 //FLAGS += ' -s NO_BROWSER=1 '; // for 20k less
 FLAGS += ' --memory-init-file 0 '; // for memless file
-FLAGS += ' -s BINARYEN_TRAP_MODE=clamp'
+// FLAGS += ' -s BINARYEN_TRAP_MODE=clamp'
 
 var PRE_FLAGS = ' --pre-js ' + path.resolve(__dirname, '../js/artoolkit.api.js') +' ';
 
@@ -169,7 +176,7 @@ var libjpeg_sources = 'jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jch
 		jdpostct.c jdsample.c jdtrans.c jerror.c jfdctflt.c jfdctfst.c \
 		jfdctint.c jidctflt.c jidctfst.c jidctint.c jidctred.c jquant1.c \
 		jquant2.c jutils.c jmemmgr.c \
-		jmemansi.c'.split(/\s+/).join(' /home/walter/kalwalt-github/jsartoolkit5/emscripten/libjpeg/')
+		jmemansi.c'.split(/\s+/).join(' emscripten/libjpeg/');
 function clean_builds() {
 	try {
 		var stats = fs.statSync(OUTPUT_PATH);
@@ -216,25 +223,28 @@ var compile_combine = format(EMCC + ' ' + INCLUDES + ' '
 	+ FLAGS + ' '  + DEBUG_FLAGS + DEFINES + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
 	OUTPUT_PATH, OUTPUT_PATH, BUILD_FILE);
 */
+// var ALL_BC = " {OUTPUT_PATH}*.bc ";
+var ALL_BC = " {OUTPUT_PATH}libar.bc {OUTPUT_PATH}libjpeg.bc ";
+
 var compile_combine = format(EMCC + ' ' + INCLUDES + ' '
-	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
+	+ ALL_BC + MAIN_SOURCES
 	+ FLAGS + ' -s WASM=0' + ' '  + DEBUG_FLAGS + DEFINES + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
-	OUTPUT_PATH, OUTPUT_PATH, BUILD_DEBUG_FILE);
+	OUTPUT_PATH, OUTPUT_PATH, OUTPUT_PATH, BUILD_DEBUG_FILE);
 /*
 var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
-	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
+	+ ALL_BC + MAIN_SOURCES
 	+ FLAGS + ' ' + DEFINES + PRE_FLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
-	OUTPUT_PATH, OUTPUT_PATH, BUILD_MIN_FILE);
+	OUTPUT_PATH, OUTPUT_PATH, OUTPUT_PATH, BUILD_MIN_FILE);
 */
 var compile_combine_min = format(EMCC + ' ' + INCLUDES + ' '
-	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
+	+ ALL_BC + MAIN_SOURCES
 	+ FLAGS + ' -s WASM=0' + ' ' + DEFINES + PRE_FLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
-	OUTPUT_PATH, OUTPUT_PATH, BUILD_MIN_FILE);
+	OUTPUT_PATH, OUTPUT_PATH, OUTPUT_PATH, BUILD_MIN_FILE);
 
 var compile_wasm = format(EMCC + ' ' + INCLUDES + ' '
-	+ ' {OUTPUT_PATH}*.bc ' + MAIN_SOURCES
+	+ ALL_BC + MAIN_SOURCES
 	+ FLAGS + DEFINES + PRE_FLAGS + ' -o {OUTPUT_PATH}{BUILD_FILE} ',
-	OUTPUT_PATH, OUTPUT_PATH, BUILD_WASM_FILE);
+	OUTPUT_PATH, OUTPUT_PATH, OUTPUT_PATH, BUILD_WASM_FILE);
 
 /*
 var compile_all = format(EMCC + ' ' + INCLUDES + ' '
