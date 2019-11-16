@@ -50,6 +50,55 @@
  #include <AR2/featureSet.h>
  #include <AR2/template.h>
 
+AR2HandleT *ar2CreateHandleMod( ARParamLT *cparamLT, AR_PIXEL_FORMAT pixFormat/*, int threadNum*/ )
+{
+    AR2HandleT   *ar2Handle;
+
+    ar2Handle = ar2CreateHandleSubMod( pixFormat, cparamLT->param.xsize, cparamLT->param.ysize/*, threadNum*/ );
+
+    ar2Handle->trackingMode      = AR2_TRACKING_6DOF;
+    ar2Handle->cparamLT          = cparamLT;
+    ar2Handle->icpHandle         = icpCreateHandle( cparamLT->param.mat );
+    icpSetInlierProbability( ar2Handle->icpHandle, 0.0 );
+
+    return ar2Handle;
+}
+
+AR2HandleT *ar2CreateHandleSubMod( int pixFormat, int xsize, int ysize/*, int threadNum*/ )
+{
+    AR2HandleT   *ar2Handle;
+    int           i;
+
+    arMalloc(ar2Handle, AR2HandleT, 1);
+    ar2Handle->pixFormat         = pixFormat;
+    ar2Handle->xsize             = xsize;
+    ar2Handle->ysize             = ysize;
+#if AR2_CAPABLE_ADAPTIVE_TEMPLATE
+    ar2Handle->blurMethod        = AR2_DEFAULT_BLUR_METHOD;
+    ar2Handle->blurLevel         = AR2_DEFAULT_BLUR_LEVEL;
+#endif
+    ar2Handle->searchSize        = AR2_DEFAULT_SEARCH_SIZE;
+    ar2Handle->templateSize1     = AR2_DEFAULT_TS1;
+    ar2Handle->templateSize2     = AR2_DEFAULT_TS2;
+    ar2Handle->searchFeatureNum  = AR2_DEFAULT_SEARCH_FEATURE_NUM;
+    if( ar2Handle->searchFeatureNum > AR2_SEARCH_FEATURE_MAX ) {
+        ar2Handle->searchFeatureNum = AR2_SEARCH_FEATURE_MAX;
+    }
+    ar2Handle->simThresh         = AR2_DEFAULT_SIM_THRESH;
+    ar2Handle->trackingThresh    = AR2_DEFAULT_TRACKING_THRESH;
+
+
+    ar2Handle->threadNum = 1;
+
+    for( i = 0; i < ar2Handle->threadNum; i++ ) {
+        arMalloc( ar2Handle->arg[i].mfImage, ARUint8, xsize*ysize );
+        ar2Handle->arg[i].templ = NULL;
+//        ar2Handle->threadHandle[i] = threadInit(i, &(ar2Handle->arg[i]), ar2Tracking2d);
+    }
+
+    return ar2Handle;
+}
+
  static float  ar2GetTransMat            ( ICPHandleT *icpHandle, float  initConv[3][4],
                                            float  pos2d[][2], float  pos3d[][3], int num, float  conv[3][4], int robustMode );
  static float  ar2GetTransMatHomography        ( float  initConv[3][4], float  pos2d[][2], float  pos3d[][3], int num,
@@ -134,6 +183,11 @@
          if( k == 0 ) break;
 
          for( j = 0; j < k; j++ ) {
+             {
+                 AR2Tracking2DParamT* arg = &ar2Handle->arg[j];
+                 arg->ret = ar2Tracking2dSub(arg->ar2Handle, arg->surfaceSet, arg->candidate,
+                                             arg->dataPtr, arg->mfImage, &(arg->templ), &(arg->result));
+             }
              //threadEndWait( ar2Handle->threadHandle[j] );
 
              if( ar2Handle->arg[j].ret == 0 && ar2Handle->arg[j].result.sim > ar2Handle->simThresh ) {

@@ -36,7 +36,8 @@ var BUILD_MIN_FILE = 'artoolkitNft.min.js';
 
 var MAIN_SOURCES = [
 	'ARToolKitJS.cpp',
-	'trackingMod.c'
+	'trackingMod.c',
+	'tracking2d.c',
 ];
 
 MAIN_SOURCES = MAIN_SOURCES.map(function(src) {
