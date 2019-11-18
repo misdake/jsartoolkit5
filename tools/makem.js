@@ -17,7 +17,7 @@ var ARTOOLKIT5_ROOT = process.env.ARTOOLKIT5_ROOT || "../emscripten/artoolkit5";
 var LIBJPEG_ROOT = process.env.LIBJPEG_ROOT || "../emscripten/libjpeg";
 
 if (!EMSCRIPTEN_ROOT) {
-	console.log("\nWarning: EMSCRIPTEN environment variable not found.")
+	console.log("\nWarning: EMSCRIPTEN environment variable not found.");
 	console.log("If you get a \"command not found\" error,\ndo `source <path to emsdk>/emsdk_env.sh` and try again.");
 }
 
@@ -36,7 +36,8 @@ var BUILD_MIN_FILE = 'artoolkitNft.min.js';
 
 var MAIN_SOURCES = [
 	'ARToolKitJS.cpp',
-	'trackingMod.c'
+	'trackingMod.c',
+	'tracking2d.c',
 ];
 
 MAIN_SOURCES = MAIN_SOURCES.map(function(src) {
@@ -130,16 +131,16 @@ FLAGS += ' --memory-init-file 0 '; // for memless file
 var PRE_FLAGS = ' --pre-js ' + path.resolve(__dirname, '../js/artoolkit.api.js') +' ';
 
 FLAGS += ' --bind ';
-FLAGS += ' -msse';
-FLAGS += ' -msse2';
-FLAGS += ' -msse3';
-FLAGS += ' -mssse3';
+// FLAGS += ' -msse';
+// FLAGS += ' -msse2';
+// FLAGS += ' -msse3';
+// FLAGS += ' -mssse3';
 
 /* DEBUG FLAGS */
 var DEBUG_FLAGS = ' -g ';
 // DEBUG_FLAGS += ' -s ASSERTIONS=2 '
-DEBUG_FLAGS += ' -s ASSERTIONS=1 '
-DEBUG_FLAGS += ' --profiling '
+DEBUG_FLAGS += ' -s ASSERTIONS=1 ';
+DEBUG_FLAGS += ' --profiling ';
 // DEBUG_FLAGS += ' -s EMTERPRETIFY_ADVISE=1 '
 DEBUG_FLAGS += ' -s ALLOW_MEMORY_GROWTH=1';
 DEBUG_FLAGS += '  -s DEMANGLE_SUPPORT=1 ';
