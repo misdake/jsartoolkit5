@@ -123,6 +123,7 @@ var FLAGS = '' + OPTIMIZE_FLAGS;
 FLAGS += ' -Wno-warn-absolute-paths ';
 FLAGS += ' -s TOTAL_MEMORY=' + MEM + ' ';
 FLAGS += ' -s USE_ZLIB=1';
+FLAGS += ' -s DYNAMIC_EXECUTION=0 ';
 //FLAGS += ' -s ERROR_ON_UNDEFINED_SYMBOLS=0';
 //FLAGS += ' -s NO_BROWSER=1 '; // for 20k less
 FLAGS += ' --memory-init-file 0 '; // for memless file
@@ -297,14 +298,11 @@ function addJob(job) {
 	jobs.push(job);
 }
 
-addJob(clean_builds);
-addJob(compile_arlib);
-//addJob(compile_kpm);
-// compile_kpm
-addJob(compile_libjpeg);
+// addJob(clean_builds);
+// addJob(compile_arlib);
+// addJob(compile_libjpeg);
 addJob(compile_combine);
-addJob(compile_wasm);
+// addJob(compile_wasm);
 addJob(compile_combine_min);
-// addJob(compile_all);
 
 runJob();

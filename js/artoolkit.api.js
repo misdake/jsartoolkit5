@@ -1,12 +1,37 @@
-;(function () {
+
     'use strict';
 
-    var scope;
-    if (typeof window !== 'undefined') {
-        scope = window;
-    } else {
-        scope = self;
-    }
+    var scope = {Module: Module};
+    var Event = function (name) {
+        return {name: name};
+    };
+
+    module.exports = scope;
+
+    scope.listeners = {};
+    scope.addEventListener = function (name, callback) {
+        if (!scope.listeners[name]) {
+            scope.listeners[name] = [];
+        }
+        scope.listeners[name].push(callback);
+    };
+    scope.removeEventListener = function (name, callback) {
+        if (scope.listeners[name]) {
+            let index = scope.listeners[name].indexOf(callback);
+            if (index > -1) {
+                scope.listeners[name].splice(index, 1);
+            }
+        }
+    };
+    scope.dispatchEvent = function (event) {
+        let listeners = scope.listeners[event.name];
+        if (listeners) {
+            for (let i = 0; i < listeners.length; i++) {
+                listeners[i].call(scope, event);
+            }
+        }
+    };
+
     if (scope.artoolkit_wasm_url) {
         function downloadWasm(url) {
             return new Promise(function (resolve, reject) {
@@ -1244,11 +1269,15 @@
         if (!image) {
             image = this.image;
         }
+        var imageData;
         if (image.data) {
 
-            var imageData = image;
+            imageData = image;
+            console.log("use imagedata directly");
 
         } else {
+            console.log("copied image to internal canvas");
+
             this.ctx.save();
 
             if (this.orientation === 'portrait') {
@@ -1261,7 +1290,7 @@
 
             this.ctx.restore();
 
-            var imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+            imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         }
         var data = imageData.data;  // this is of type Uint8ClampedArray: The Uint8ClampedArray typed array represents an array of 8-bit unsigned integers clamped to 0-255 (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray)
 
@@ -1913,22 +1942,20 @@
     //	ajax('../bin/Data/patt.hiro', '/patt.hiro', callback);
 
     function ajax(url, target, callback, errorCallback) {
-        var oReq = new XMLHttpRequest();
-        oReq.open('GET', url, true);
-        oReq.responseType = 'arraybuffer'; // blob arraybuffer
-
-        oReq.onload = function () {
-            if (this.status == 200) {
-                // console.log('ajax done for ', url);
-                var arrayBuffer = oReq.response;
-                var byteArray = new Uint8Array(arrayBuffer);
+        wx.request({
+            url: url,
+            header: {
+                'content-type': 'application/octet-stream'
+            },
+            responseType: "arraybuffer",
+            success(res) {
+                let byteArray = new Uint8Array(res.data);
                 writeByteArrayToFS(target, byteArray, callback);
-            } else {
+            },
+            fail() {
                 errorCallback(this.status);
             }
-        };
-
-        oReq.send();
+        })
     }
 
     function ajaxDependencies(files, callback) {
@@ -1961,4 +1988,3 @@
         };
     }
 
-})();
