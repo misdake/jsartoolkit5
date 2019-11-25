@@ -298,11 +298,11 @@ function addJob(job) {
 	jobs.push(job);
 }
 
-// addJob(clean_builds);
-// addJob(compile_arlib);
-// addJob(compile_libjpeg);
+addJob(clean_builds);
+addJob(compile_arlib);
+addJob(compile_libjpeg);
 addJob(compile_combine);
-// addJob(compile_wasm);
+addJob(compile_wasm);
 addJob(compile_combine_min);
 
 runJob();

@@ -98,22 +98,11 @@
      */
     var ARController = function (width, height, cameraPara) {
         this.id = undefined;
-        var w = width, h = height;
-
-        this.orientation = 'landscape';
 
         this.listeners = {};
 
-        if (typeof width !== 'number') {
-            var image = width;
-            cameraPara = height;
-            w = image.videoWidth || image.width;
-            h = image.videoHeight || image.height;
-            this.image = image;
-        }
-
-        this.width = w;
-        this.height = h;
+        this.width = width;
+        this.height = height;
 
         this.nftMarkerCount = 0;
 
@@ -124,15 +113,8 @@
         this.transform_mat = new Float32Array(16);
         this.transformGL_RH = new Float64Array(16);
 
-        if (typeof document !== 'undefined') {
-            this.canvas = document.createElement('canvas');
-            this.canvas.width = w;
-            this.canvas.height = h;
-            this.ctx = this.canvas.getContext('2d');
-        }
-
-        this.videoWidth = w;
-        this.videoHeight = h;
+        this.videoWidth = width;
+        this.videoHeight = height;
         this.videoSize = this.videoWidth * this.videoHeight;
 
         //Set during _initialize
@@ -143,8 +125,6 @@
         this.camera_mat = null;
         this.marker_transform_mat = null;
         this.videoLumaPointer = null;
-        this._bwpointer = undefined;
-        this._lumaCtx = undefined;
 
         if (typeof cameraPara === 'string') {
 
@@ -359,9 +339,6 @@
                 }
             }
         }
-        if (this._bwpointer) {
-            this.debugDraw();
-        }
     };
 
     ARController.prototype.detectNFTMarker = function () {
@@ -521,24 +498,6 @@
                 listeners[i].call(this, event);
             }
         }
-    };
-
-    /**
-     Sets up a debug canvas for the AR detection. Draws a red marker on top of each detected square in the image.
-
-     The debug canvas is added to document.body.
-     */
-    ARController.prototype.debugSetup = function () {
-        document.body.appendChild(this.canvas);
-
-        var lumaCanvas = document.createElement('canvas');
-        lumaCanvas.width = this.canvas.width;
-        lumaCanvas.height = this.canvas.height;
-        this._lumaCtx = lumaCanvas.getContext('2d');
-        document.body.appendChild(lumaCanvas);
-
-        this.setDebugMode(true);
-        this._bwpointer = this.getProcessingImage();
     };
 
     /**
@@ -1194,41 +1153,6 @@
         return artoolkit.getImageProcMode(this.id);
     };
 
-
-    /**
-     Draw the black and white image and debug markers to the ARController canvas.
-
-     See setDebugMode.
-     */
-    ARController.prototype.debugDraw = function () {
-        var debugBuffer = new Uint8ClampedArray(Module.HEAPU8.buffer, this._bwpointer, this.framesize);
-        var id = new ImageData(new Uint8ClampedArray(this.canvas.width * this.canvas.height * 4), this.canvas.width, this.canvas.height);
-        for (var i = 0, j = 0; i < debugBuffer.length; i++, j += 4) {
-            var v = debugBuffer[i];
-            id.data[j + 0] = v;
-            id.data[j + 1] = v;
-            id.data[j + 2] = v;
-            id.data[j + 3] = 255;
-        }
-        this.ctx.putImageData(id, 0, 0)
-
-        //Debug Luma
-        var lumaBuffer = new Uint8ClampedArray(this.framesize);
-        lumaBuffer.set(this.videoLuma);
-        var lumaImageData = new ImageData(lumaBuffer, this.videoWidth, this.videoHeight);
-        this._lumaCtx.putImageData(lumaImageData, 0, 0);
-
-        var marker_num = this.getMarkerNum();
-        for (var i = 0; i < marker_num; i++) {
-            this._debugMarker(this.getMarker(i));
-        }
-        if (this.transform_mat && this.transformGL_RH) {
-            console.log("GL 4x4 Matrix: " + this.transform_mat);
-            console.log("GL_RH 4x4 Mat: " + this.transformGL_RH);
-        }
-    };
-
-
     // private
 
     ARController.prototype._initialize = function () {
@@ -1265,34 +1189,8 @@
         artoolkit.setupAR2(this.id);
     };
 
-    ARController.prototype._copyImageToHeap = function (image) {
-        if (!image) {
-            image = this.image;
-        }
-        var imageData;
-        if (image.data) {
-
-            imageData = image;
-            console.log("use imagedata directly");
-
-        } else {
-            console.log("copied image to internal canvas");
-
-            this.ctx.save();
-
-            if (this.orientation === 'portrait') {
-                this.ctx.translate(this.canvas.width, 0);
-                this.ctx.rotate(Math.PI / 2);
-                this.ctx.drawImage(image, 0, 0, this.canvas.height, this.canvas.width); // draw video
-            } else {
-                this.ctx.drawImage(image, 0, 0, this.canvas.width, this.canvas.height); // draw video
-            }
-
-            this.ctx.restore();
-
-            imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-        }
-        var data = imageData.data;  // this is of type Uint8ClampedArray: The Uint8ClampedArray typed array represents an array of 8-bit unsigned integers clamped to 0-255 (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray)
+    ARController.prototype._copyImageToHeap = function (imageData) {
+        let data = imageData.data;  // this is of type Uint8ClampedArray: The Uint8ClampedArray typed array represents an array of 8-bit unsigned integers clamped to 0-255 (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray)
 
         //Here we have access to the unmodified video image. We now need to add the videoLuma chanel to be able to serve the underlying ARTK API
         if (this.videoLuma) {
@@ -1306,320 +1204,12 @@
                 q += 4;
             }
         }
-
         if (this.dataHeap) {
             this.dataHeap.set(data);
             return true;
         }
         return false;
     };
-
-
-    ARController.prototype._debugMarker = function (marker) {
-        var vertex, pos;
-        vertex = marker.vertex;
-        var ctx = this.ctx;
-        ctx.strokeStyle = 'red';
-
-        ctx.beginPath()
-        ctx.moveTo(vertex[0][0], vertex[0][1])
-        ctx.lineTo(vertex[1][0], vertex[1][1])
-        ctx.stroke();
-
-        ctx.beginPath()
-        ctx.moveTo(vertex[2][0], vertex[2][1])
-        ctx.lineTo(vertex[3][0], vertex[3][1])
-        ctx.stroke()
-
-        ctx.strokeStyle = 'green';
-        ctx.beginPath()
-        ctx.lineTo(vertex[1][0], vertex[1][1])
-        ctx.lineTo(vertex[2][0], vertex[2][1])
-        ctx.stroke();
-
-        ctx.beginPath()
-        ctx.moveTo(vertex[3][0], vertex[3][1])
-        ctx.lineTo(vertex[0][0], vertex[0][1])
-        ctx.stroke();
-
-        pos = marker.pos
-        ctx.beginPath()
-        ctx.arc(pos[0], pos[1], 8, 0, Math.PI * 2)
-        ctx.fillStyle = 'red'
-        ctx.fill()
-    };
-
-
-    // static
-
-    /**
-     ARController.getUserMedia gets a device camera video feed and calls the given onSuccess callback with it.
-
-     Tries to start playing the video. Playing the video can fail on Chrome for Android,
-     so ARController.getUserMedia adds user input event listeners to the window
-     that try to start playing the video. On success, the event listeners are removed.
-
-     To use ARController.getUserMedia, call it with an object with the onSuccess attribute set to a callback function.
-
-     ARController.getUserMedia({
-				onSuccess: function(video) {
-					console.log("Got video", video);
-				}
-			});
-
-     The configuration object supports the following attributes:
-
-     {
-				onSuccess : function(video),
-				onError : function(error),
-
-				width : number | {min: number, ideal: number, max: number},
-				height : number | {min: number, ideal: number, max: number},
-
-				facingMode : 'environment' | 'user' | 'left' | 'right' | { exact: 'environment' | ... }
-			}
-
-     See https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia for more information about the
-     width, height and facingMode attributes.
-
-     @param {object} configuration The configuration object.
-     @return {VideoElement} Returns the created video element.
-     */
-    ARController.getUserMedia = function (configuration) {
-        var facing = configuration.facingMode || 'environment';
-
-        var onSuccess = configuration.onSuccess;
-        var onError = configuration.onError || function (err) {
-            console.error("ARController.getUserMedia", err);
-        };
-
-        var video = document.createElement('video');
-
-        var initProgress = function () {
-            if (this.videoWidth !== 0) {
-                onSuccess(video);
-            }
-        };
-
-        var readyToPlay = false;
-        var eventNames = [
-            'touchstart', 'touchend', 'touchmove', 'touchcancel',
-            'click', 'mousedown', 'mouseup', 'mousemove',
-            'keydown', 'keyup', 'keypress', 'scroll'
-        ];
-        var play = function () {
-            if (readyToPlay) {
-                video.play().then(function () {
-                    onSuccess(video);
-                }).catch(function (error) {
-                    onError(error);
-                    ARController._teardownVideo(video);
-                });
-                if (!video.paused) {
-                    eventNames.forEach(function (eventName) {
-                        window.removeEventListener(eventName, play, true);
-                    });
-                }
-            }
-        };
-        eventNames.forEach(function (eventName) {
-            window.addEventListener(eventName, play, true);
-        });
-
-        var success = function (stream) {
-            //DEPRECATED: don't use window.URL.createObjectURL(stream) any longer it might be removed soon. Only there to support old browsers src: https://developer.mozilla.org/en-US/docs/Web/API/URL/createObjectURL
-            if (window.URL.createObjectURL) {
-                //Need to add try-catch because iOS 11 fails to createObjectURL from stream. As this is deprecated  we should remove this soon
-                try {
-                    video.srcObject = stream; // DEPRECATED: this feature is in the process to being deprecated
-                } catch (ex) {
-                    // Nothing todo, the purpose of this is to remove an error from the console on iOS 11
-                }
-            }
-            video.srcObject = stream; // This should be used instead. Which has the benefit to give us access to the stream object
-            readyToPlay = true;
-            video.autoplay = true;
-            video.playsInline = true;
-            play(); // Try playing without user input, should work on non-Android Chrome
-        };
-
-        var constraints = {};
-        var mediaDevicesConstraints = {};
-        if (configuration.width) {
-            mediaDevicesConstraints.width = configuration.width;
-            if (typeof configuration.width === 'object') {
-                if (configuration.width.max) {
-                    constraints.maxWidth = configuration.width.max;
-                }
-                if (configuration.width.min) {
-                    constraints.minWidth = configuration.width.min;
-                }
-            } else {
-                constraints.maxWidth = configuration.width;
-            }
-        }
-
-        if (configuration.height) {
-            mediaDevicesConstraints.height = configuration.height;
-            if (typeof configuration.height === 'object') {
-                if (configuration.height.max) {
-                    constraints.maxHeight = configuration.height.max;
-                }
-                if (configuration.height.min) {
-                    constraints.minHeight = configuration.height.min;
-                }
-            } else {
-                constraints.maxHeight = configuration.height;
-            }
-        }
-
-        mediaDevicesConstraints.facingMode = facing;
-        mediaDevicesConstraints.deviceId = configuration.deviceId;
-
-        // @ts-ignore: Ignored because it is needed to support older browsers
-        navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-        var hdConstraints = {
-            audio: false,
-            video: constraints
-        };
-
-
-        // @ts-ignore: ignored because it is needed to support older browsers
-        if (navigator.mediaDevices || window.MediaStreamTrack.getSources) {
-            if (navigator.mediaDevices) {
-                navigator.mediaDevices.getUserMedia({
-                    audio: false,
-                    video: mediaDevicesConstraints
-                }).then(success, onError);
-            } else {
-                // This function of accessing the media device is deprecated and outdated and shouldn't be used anymore.
-                // @ts-ignore: ignored because it is needed to support older browsers
-                window.MediaStreamTrack.getSources(function (sources) {
-                    var facingDir = mediaDevicesConstraints.facingMode;
-                    if (facing && facing.exact) {
-                        facingDir = facing.exact;
-                    }
-                    for (var i = 0; i < sources.length; i++) {
-                        if (sources[i].kind === 'video' && sources[i].facing === facingDir) {
-                            hdConstraints.video.mandatory.sourceId = sources[i].id;
-                            break;
-                        }
-                    }
-                    if (facing && facing.exact && !hdConstraints.video.mandatory.sourceId) {
-                        onError('Failed to get camera facing the wanted direction');
-                    } else {
-                        if (navigator.getUserMedia) {
-                            navigator.getUserMedia(hdConstraints, success, onError);
-                        } else {
-                            onError('navigator.getUserMedia is not supported on your browser');
-                        }
-                    }
-                });
-            }
-        } else {
-            if (navigator.getUserMedia) {
-                navigator.getUserMedia(hdConstraints, success, onError);
-            } else {
-                onError('navigator.getUserMedia is not supported on your browser');
-            }
-        }
-
-        return video;
-    };
-    /**
-     ARController.getUserMediaARController gets an ARController for the device camera video feed and calls the
-     given onSuccess callback with it.
-
-     To use ARController.getUserMediaARController, call it with an object with the cameraParam attribute set to
-     a camera parameter file URL, and the onSuccess attribute set to a callback function.
-
-     ARController.getUserMediaARController({
-				cameraParam: 'Data/camera_para.dat',
-				onSuccess: function(arController, arCameraParam) {
-					console.log("Got ARController", arController);
-					console.log("Got ARCameraParam", arCameraParam);
-					console.log("Got video", arController.image);
-				}
-			});
-
-     The configuration object supports the following attributes:
-
-     {
-				onSuccess : function(ARController, ARCameraParam),
-				onError : function(error),
-
-				cameraParam: url, // URL to camera parameters definition file.
-				maxARVideoSize: number, // Maximum max(width, height) for the AR processing canvas.
-
-				width : number | {min: number, ideal: number, max: number},
-				height : number | {min: number, ideal: number, max: number},
-
-				facingMode : 'environment' | 'user' | 'left' | 'right' | { exact: 'environment' | ... }
-			}
-
-     See https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia for more information about the
-     width, height and facingMode attributes.
-
-     The orientation attribute of the returned ARController is set to "portrait" if the userMedia video has larger
-     height than width. Otherwise it's set to "landscape". The videoWidth and videoHeight attributes of the arController
-     are set to be always in landscape configuration so that width is larger than height.
-
-     @param {object} configuration The configuration object.
-     @return {VideoElement} Returns the created video element.
-     */
-    ARController.getUserMediaARController = function (configuration) {
-        var obj = {};
-        for (var i in configuration) {
-            obj[i] = configuration[i];
-        }
-        var onSuccess = configuration.onSuccess;
-        var cameraParamURL = configuration.cameraParam;
-        var onError = configuration.onError || function (err) {
-            console.error("ARController: Failed to load ARCameraParam", err);
-        }
-
-        obj.onSuccess = function () {
-            new ARCameraParam(cameraParamURL, function () {
-                var arCameraParam = this;
-                var maxSize = configuration.maxARVideoSize || Math.max(video.videoWidth, video.videoHeight);
-                var f = maxSize / Math.max(video.videoWidth, video.videoHeight);
-                var w = f * video.videoWidth;
-                var h = f * video.videoHeight;
-                if (video.videoWidth < video.videoHeight) {
-                    var tmp = w;
-                    w = h;
-                    h = tmp;
-                }
-                var arController = new ARController(w, h, arCameraParam);
-                arController.image = video;
-                if (video.videoWidth < video.videoHeight) {
-                    arController.orientation = 'portrait';
-                    arController.videoWidth = video.videoHeight;
-                    arController.videoHeight = video.videoWidth;
-                } else {
-                    arController.orientation = 'landscape';
-                    arController.videoWidth = video.videoWidth;
-                    arController.videoHeight = video.videoHeight;
-                }
-                onSuccess(arController, arCameraParam);
-            }, function (err) {
-                ARController._teardownVideo(video);
-                onError(err);
-            });
-        };
-
-        var video = ARController.getUserMedia(obj);
-        return video;
-    };
-    /**
-     * Properly end the video stream
-     * @param {HTMLVideoElement} video The video to stop
-     */
-    ARController._teardownVideo = function (video) {
-        video.srcObject.getVideoTracks()[0].stop();
-        video.srcObject = null;
-        video.src = null;
-    }
 
     /**
      ARCameraParam is used for loading AR camera parameters for use with ARController.
