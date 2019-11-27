@@ -1,77 +1,38 @@
+'use strict';
 
-    'use strict';
+var scope = {Module: Module};
+var Event = function (name) {
+    return {name: name};
+};
 
-    var scope = {Module: Module};
-    var Event = function (name) {
-        return {name: name};
-    };
+module.exports = scope;
 
-    module.exports = scope;
+document = document || {};
+window = window || {};
 
-    scope.listeners = {};
-    scope.addEventListener = function (name, callback) {
-        if (!scope.listeners[name]) {
-            scope.listeners[name] = [];
+scope.listeners = {};
+scope.addEventListener = function (name, callback) {
+    if (!scope.listeners[name]) {
+        scope.listeners[name] = [];
+    }
+    scope.listeners[name].push(callback);
+};
+scope.removeEventListener = function (name, callback) {
+    if (scope.listeners[name]) {
+        let index = scope.listeners[name].indexOf(callback);
+        if (index > -1) {
+            scope.listeners[name].splice(index, 1);
         }
-        scope.listeners[name].push(callback);
-    };
-    scope.removeEventListener = function (name, callback) {
-        if (scope.listeners[name]) {
-            let index = scope.listeners[name].indexOf(callback);
-            if (index > -1) {
-                scope.listeners[name].splice(index, 1);
-            }
-        }
-    };
-    scope.dispatchEvent = function (event) {
-        let listeners = scope.listeners[event.name];
-        if (listeners) {
-            for (let i = 0; i < listeners.length; i++) {
+    }
+};
+scope.dispatchEvent = function (event) {
+    let listeners = scope.listeners[event.name];
+    if (listeners) {
+        for (let i = 0; i < listeners.length; i++) {
                 listeners[i].call(scope, event);
             }
         }
     };
-
-    if (scope.artoolkit_wasm_url) {
-        function downloadWasm(url) {
-            return new Promise(function (resolve, reject) {
-                var wasmXHR = new XMLHttpRequest();
-                wasmXHR.open('GET', url, true);
-                wasmXHR.responseType = 'arraybuffer';
-                wasmXHR.onload = function () {
-                    resolve(wasmXHR.response);
-                }
-                wasmXHR.onerror = function () {
-                    reject('error ' + wasmXHR.status);
-                }
-                wasmXHR.send(null);
-            });
-        }
-
-        var wasm = downloadWasm(scope.artoolkit_wasm_url);
-
-        // Module.instantiateWasm is a user-implemented callback which the Emscripten runtime calls to perform
-        // the WebAssembly instantiation action. The callback function will be called with two parameters, imports
-        // and successCallback. imports is a JS object which contains all the function imports that need to be passed
-        // to the Module when instantiating, and once instantiated, the function should call successCallback() with
-        // the WebAssembly Instance object.
-        // The instantiation can be performed either synchronously or asynchronously. The return value of this function
-        // should contain the exports object of the instantiated Module, or an empty dictionary object {} if the
-        // instantiation is performed asynchronously, or false if instantiation failed.
-        Module.instantiateWasm = function (imports, successCallback) {
-            console.log('instantiateWasm: instantiating synchronously');
-            wasm.then(function (wasmBinary) {
-                console.log('wasm download finished, begin instantiating');
-                var wasmInstantiate = WebAssembly.instantiate(new Uint8Array(wasmBinary), imports).then(function (output) {
-                    console.log('wasm instantiation succeeded');
-                    successCallback(output.instance);
-                }).catch(function (e) {
-                    console.log('wasm instantiation failed! ' + e);
-                });
-            });
-            return {}; // Compiling asynchronously, no exports.
-        }
-    }
 
     /**
      The ARController is the main object for doing AR marker detection with JSARToolKit.
@@ -530,9 +491,9 @@
      @param {function} onSuccess - The success callback. Called with the id of the loaded marker on a successful load.
      @param {function} onError - The error callback. Called with the encountered error if the load fails.
      */
-    ARController.prototype.loadNFTMarker = function (markerURL, onSuccess, onError) {
+    ARController.prototype.loadNFTMarker = function (fset, iset, fset3, onSuccess, onError) {
         var self = this;
-        return artoolkit.addNFTMarker(this.id, markerURL, function (id) {
+        return artoolkit.addNFTMarker(this.id, fset, iset, fset3, function (id) {
             self.nftMarkerCount = id + 1;
             onSuccess(id);
         }, onError);
@@ -1193,7 +1154,6 @@
         let data = imageData.data;  // this is of type Uint8ClampedArray: The Uint8ClampedArray typed array represents an array of 8-bit unsigned integers clamped to 0-255 (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8ClampedArray)
 
         //Here we have access to the unmodified video image. We now need to add the videoLuma chanel to be able to serve the underlying ARTK API
-        if (this.videoLuma) {
             var q = 0;
             //Create luma from video data assuming Pixelformat AR_PIXEL_FORMAT_RGBA (ARToolKitJS.cpp L: 43)
 
@@ -1202,13 +1162,12 @@
                 // videoLuma[p] = (r+r+b+g+g+g)/6;         // https://stackoverflow.com/a/596241/5843642
                 this.videoLuma[p] = (r + r + r + b + g + g + g + g) >> 3;
                 q += 4;
+                this.dataHeap[q+0] = r;
+                this.dataHeap[q+1] = g;
+                this.dataHeap[q+2] = b;
+                this.dataHeap[q+3] = 255;
             }
-        }
-        if (this.dataHeap) {
-            this.dataHeap.set(data);
-            return true;
-        }
-        return false;
+        return true;
     };
 
     /**
@@ -1405,21 +1364,23 @@
         });
     }
 
-    function addNFTMarker(arId, url, callback) {
-        var mId = marker_count++;
-        var prefix = '/markerNFT_' + mId;
-        var filename1 = prefix + '.fset';
-        var filename2 = prefix + '.iset';
-        var filename3 = prefix + '.fset3';
-        ajax(url + '.fset', filename1, function () {
-            ajax(url + '.iset', filename2, function () {
-                ajax(url + '.fset3', filename3, function () {
-                    var id = Module._addNFTMarker(arId, prefix);
-                    if (callback) callback(id);
-                });
-            });
-        });
-    }
+function addNFTMarker(arId, fset, iset, fset3, callback) {
+    let mId = marker_count++;
+    let prefix = '/markerNFT_' + mId;
+    let filename1 = prefix + '.fset';
+    let filename2 = prefix + '.iset';
+    let filename3 = prefix + '.fset3';
+
+    let cb = () => {
+        console.log("writeByteArrayToFS success");
+    };
+    writeByteArrayToFS(filename1, new Uint8Array(fset), cb);
+    writeByteArrayToFS(filename2, new Uint8Array(iset), cb);
+    writeByteArrayToFS(filename3, new Uint8Array(fset3), cb);
+
+    let id = Module._addNFTMarker(arId, prefix);
+    if (callback) callback(id);
+}
 
     function bytesToString(array) {
         return String.fromCharCode.apply(String, array);
